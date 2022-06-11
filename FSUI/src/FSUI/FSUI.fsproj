@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- <Compile Include="Cache.fs" /> -->
+    <!-- <Compile Include="Node.fs" /> -->
+    <Compile Include="Renderer.fs" />
+  </ItemGroup>
+
+</Project>
