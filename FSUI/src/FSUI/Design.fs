@@ -1,33 +1,35 @@
 // DU Design
 
+module ScratchDesign
+
+open System
+open System.Collections.Generic
+
 type Position = | Ordinal of int
 
-type Node =
-    | Text of string
-    | Container of Node list
+type SuperCache() =
+    let caches : IDictionary<Type, IDictionary<Position, obj>> = dict []
 
-type Cache = Map<System.Type(*NodeCase*), Map<Position, Node>>
+    member _.Get<'T> (key: Position) : 'T option =
+        match caches.TryGetValue typeof<'T> with
+        | true, cache ->
+            match cache.TryGetValue key with
+            | true, o -> Some (o :?> 'T)
+            | _ -> None
+        | _ ->
+            None
 
-let caches : Cache = Map.empty
-
-let aNode = Text hi
-let aPosition = Ordinal 0
-
-
-let find<'T> (node: 'T) (position: Position) = 
-    match Map.tryFind typeof<'T> caches with
-    | Some cache ->
-        cache.TryFind position
-    | None ->
-        None
-(*
-val find:
-   node    : 'T ->
-   position: Position
-          -> option<Node>
-I need find to return a specific case
-so this is impossible?
-*)
+    member _.Set<'T> (key: Position) (value: 'T) =
+        match caches.TryGetValue typeof<'T> with
+        | true, cache ->
+            cache.Add(key, value)
+        | _ ->
+            let cache : IDictionary<Position, 'T> = dict [key, value]
+            let casted = cache :?> IDictionary<Position, obj>
+            caches.Add(typeof<'T>, casted)
 
 
-let text<
+type Foo = class end
+
+let superCache = SuperCache()
+let x : Foo option = superCache.Get<Foo>(Ordinal 0)
