@@ -1,4 +1,4 @@
-namespace Design.UsageSketch
+namespace Scratch.TopDownSketch
 
 module MockRenderer  =
     open System
