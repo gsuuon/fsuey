@@ -1,25 +1,11 @@
 namespace Scratch.DependencyInjection
 
+open Design.Host
+
 module Elements =
     open System.Collections.Generic
 
-    type Key = Ordinal of int
-
-    module Host =
-        type VisualElement() =
-            interface System.IDisposable with
-                member _.Dispose() = ()
-
-        type VisualTextElement(content: string) =
-            inherit VisualElement()
-
-        type VisualContainer(children: VisualElement list) =
-            inherit VisualElement()
-            member _.Children = children
-
     module Scratch1 =
-        open Host
-
         type ICached<'K, 'V when 'K : comparison> =
             abstract member Cache : IDictionary<'K, 'V>
             abstract member Wipe : unit -> unit
@@ -81,7 +67,6 @@ module Elements =
             0
 
     module MultipleConcreteInterface =
-        open Host
         open System
 
         type Cache<'K, 'V1, 'V2 when 'K: equality and 'V2 :> IDisposable >() =
