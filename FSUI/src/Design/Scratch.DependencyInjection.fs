@@ -6,11 +6,15 @@ module Elements =
     type Key = Ordinal of int
 
     module Host =
-        type IVisualElement = interface end
+        type VisualElement() =
+            interface System.IDisposable with
+                member _.Dispose() = ()
+
         type VisualTextElement(content: string) =
-            interface IVisualElement
-        type VisualContainer(children: IVisualElement list) =
-            interface IVisualElement
+            inherit VisualElement()
+
+        type VisualContainer(children: VisualElement list) =
+            inherit VisualElement()
             member _.Children = children
 
     module Scratch1 =
@@ -40,7 +44,7 @@ module Elements =
             inherit Cached<string * VisualTextElement>()
                 // TODO this needs to tie into element
             interface ITextElement<VisualTextElement> with
-                member _.Create x = VisualTextElement(x)
+                member _.Create x = new VisualTextElement(x)
                 member _.Update (content, x) = ()
 
         // Env
@@ -78,14 +82,23 @@ module Elements =
 
     module MultipleConcreteInterface =
         open Host
+        open System
+
+        type Cache<'K, 'V1, 'V2 when 'K: equality and 'V2 :> IDisposable >() =
+            inherit Dictionary<'K, 'V1 * 'V2>()
+            member this.Wipe() =
+                for x in this do
+                    (snd x.Value).Dispose()
+                    
+                this.Clear()
 
         [<AbstractClass>]
-        type IElement<'Data, 'Visual>() =
-            member _.Cache : Map<Key, 'Data * 'Visual> = Map.empty
+        type IElement<'Data, 'Visual when 'Visual :> IDisposable>() =
+            member _.Cache : Cache<Key, 'Data, 'Visual> = Cache()
             abstract member Create : 'Data -> 'Visual
             abstract member Update : 'Data -> 'Visual -> 'Visual
             
-        type IProvider<'Data, 'Visual> =
+        type IProvider<'Data, 'Visual when 'Visual :> IDisposable> =
             abstract member Element : IElement<'Data, 'Visual>
 
         type Node<'T> = Key -> 'T
@@ -93,22 +106,24 @@ module Elements =
         type Env() =
             let visualText = 
                 { new IElement<_,_>() with
-                    member _.Create content = VisualTextElement content
+                    member _.Create content = new VisualTextElement (content)
                     member _.Update content previous = previous
                 }
 
             let visualContainer =
                 { new IElement<_, VisualContainer>() with
                     member _.Create children = 
-                        children
-                         |> List.map (fun x -> x (Ordinal 0))
-                         |> VisualContainer
+                        new VisualContainer (children |> List.map (fun x -> x (Ordinal 0)))
                             
                     member _.Update children previous = previous
                 }
 
             interface IProvider<string, VisualTextElement> with member _.Element = visualText
-            interface IProvider<Node<IVisualElement> list, VisualContainer> with member _.Element = visualContainer
+            interface IProvider<Node<VisualElement> list, VisualContainer> with member _.Element = visualContainer
+
+            member _.Wipe () =
+                visualText.Cache.Wipe()
+                visualContainer.Cache.Wipe()
 
         let text (env: #IProvider<string, _>) content =
             env.Element.Create content
