@@ -1,23 +1,9 @@
-// DU Design
-
-(*
-Requirements:
-- Get the expected type out of the cache `let x : Foo = cache.Get<Foo> (somePosition)`
-- at least 2 caches
-- for a given type and position, i get a Some if position has an existing type of same type. Else None
-- can iterate through each entire cache, across all the types
-
-Desired:
-- No casting
-- Decent performance
-*)
-
-module ScratchDesign
+namespace Scratch.InstancedGlobalCache
 
 open System
 open System.Collections.Generic
 
-type Position = | Ordinal of int
+open Design.Common
 
 type InstantiatedTypesGlobalCache() =
     static let mutable instantiatedTypes : Type list = List.empty
@@ -51,10 +37,10 @@ type CacheAccess(idx: int) =
 
     member _.Get key =
         InstancedGlobalCache.Get idx key
-    member cache.Set key value remove =
+    member cache.Set<'T> key (value: 'T) remove =
         removals <-
             (fun _ ->
-                match cache.Get key with
+                match cache.Get<'T> key with
                 | Some x -> remove x |> ignore
                 | None -> ()
             )
@@ -64,18 +50,20 @@ type CacheAccess(idx: int) =
         for removal in removals do
             removal()
 
-type Foo() =
-    member _.Remove () = ()
 
-let cache1 = CacheAccess(1)
+module Sketches =
+    type Foo() =
+        member _.Remove () = ()
 
-let operator (foo: Foo) (cache: CacheAccess) (position: Position) =
-    match cache.Get<Foo> position with
-    | Some prevFoo -> prevFoo
-    | None ->
-        cache.Set position foo (fun x -> x.Remove())
-        foo
+    let cache1 = CacheAccess(1)
 
-cache1.Set<Foo> (Ordinal 0) (Foo())
+    let operator (foo: Foo) (cache: CacheAccess) (position: Position) =
+        match cache.Get<Foo> position with
+        | Some prevFoo -> prevFoo
+        | None ->
+            cache.Set position foo (fun (x: Foo) -> x.Remove())
+            foo
 
-let x = cache1.Get<Foo> (Ordinal 0)
+    cache1.Set<Foo> (Ordinal 0) (Foo()) (fun (x: Foo) -> x.Remove())
+
+    let x = cache1.Get<Foo> (Ordinal 0)
