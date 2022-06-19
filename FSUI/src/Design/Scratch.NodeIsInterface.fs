@@ -1,4 +1,4 @@
-module ScratchNodeIsInterface
+module Scratch.NodeIsInterface
 
 module Graph =
     open System

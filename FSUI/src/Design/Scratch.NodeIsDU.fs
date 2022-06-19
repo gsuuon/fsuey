@@ -1,4 +1,4 @@
-module ScratchNodeIsDU
+module Scratch.NodeIsDU
 
 module Graph =
     open System
