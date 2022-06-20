@@ -3,7 +3,10 @@ namespace Scratch.ObjectExpression
 open Design.Common
 
 module CommonNodeInterfaces =
+    type ICached<'Key, 'Data> = System.Collections.Generic.IDictionary<'Key, 'Data>
+        
     type IElement<'Data, 'Visual> =
+        abstract member Cache : ICached<Position, 'Data * 'Visual>
         abstract member Create : 'Data -> 'Visual
 
     type IText<'Visual> =
@@ -13,21 +16,52 @@ module CommonNodeInterfaces =
         abstract member Container : IElement<List<'Visual>, 'Container>
 
 module ImplementationHost =
+
     open CommonNodeInterfaces
     open Design.Host
 
+    let cache () = System.Collections.Generic.Dictionary()
+
+    type CacheTag =
+        | A
+        | B
+
+    type Cache<'Data, 'Visual>(swapEvt: Event<CacheTag>, wipeEvt: Event<Unit>) =
+        let cacheA = cache()
+        let cacheB = cache()
+        let mutable activeCache = A
+
+        let subscription =
+            wipeEvt.Publish.Subscribe (
+                function
+                | A -> cacheA.Clear()
+                | B -> cacheB.Clear()
+            )
+
+        interface System.IDisposable with
+            member _.Dispose () = subscription.Dispose()
+
+
     type Env() =
+        let cacheText = cache()
+        let cacheContainer = cache()
+
+        member _.Wipe() = // TODO flesh out
+            cacheText.Clear()
+            cacheContainer.Clear()
+
         interface IText<IVisualElement> with
             member val Text =
                 { new IElement<string, _> with
+                    member _.Cache = cacheText
                     member _.Create content = new VisualTextElement (content) :> IVisualElement
                 }
 
         interface IContainer<IVisualElement, VisualContainer> with
             member val Container =
                 { new IElement<List<IVisualElement>, VisualContainer> with
-                    member _.Create children =
-                        new VisualContainer (children)
+                    member _.Cache = cacheContainer
+                    member _.Create children = new VisualContainer (children)
                 }
 
 module RenderElements =
