@@ -3,95 +3,155 @@ namespace Scratch.ObjectExpression
 open Design.Common
 
 module CommonNodeInterfaces =
-    type ICached<'Key, 'Data> = System.Collections.Generic.IDictionary<'Key, 'Data>
-        
-    type IElement<'Data, 'Visual> =
-        abstract member Cache : ICached<Position, 'Data * 'Visual>
-        abstract member Create : 'Data -> 'Visual
-
-    type IText<'Visual> =
-        abstract member Text : IElement<string, 'Visual>
-
-    type IContainer<'Visual, 'Container> =
-        abstract member Container : IElement<List<'Visual>, 'Container>
-
-module ImplementationHost =
-
-    open CommonNodeInterfaces
-    open Design.Host
-
-    let cache () = System.Collections.Generic.Dictionary()
-
     type CacheTag =
         | A
         | B
 
-    type Cache<'Data, 'Visual>(swapEvt: Event<CacheTag>, wipeEvt: Event<Unit>) =
+    type CacheEvent = {
+        swap: Event<CacheTag>
+        wipe: Event<unit>
+    }
+    let cache () = System.Collections.Generic.Dictionary()
+        
+    type SwapCache() =
+        member val activeCache = A with get, set
+
+        member val cacheEvents = {
+            wipe = Event<unit>()
+            swap = Event<CacheTag>()
+        }
+        member x.Wipe() =
+            x.cacheEvents.wipe.Trigger()
+        member x.Swap() =
+            x.activeCache <-
+                match x.activeCache with
+                | A -> B
+                | B -> A
+
+            x.cacheEvents.swap.Trigger(x.activeCache)
+    
+    type ISwapCache =
+        abstract member Cache : SwapCache
+
+    type ICache<'K, 'V> =
+        abstract member Cache : System.Collections.Generic.IDictionary<'K, 'V>
+
+    [<AbstractClass>]
+    type ElementBase<'Data, 'Visual>(cacheEvent: CacheEvent) =
         let cacheA = cache()
         let cacheB = cache()
         let mutable activeCache = A
-
         let subscription =
-            wipeEvt.Publish.Subscribe (
-                function
-                | A -> cacheA.Clear()
-                | B -> cacheB.Clear()
+            cacheEvent.wipe.Publish.Subscribe (
+                fun _ ->
+                    match activeCache with
+                    | A -> cacheA.Clear()
+                    | B -> cacheB.Clear()
             )
-
         interface System.IDisposable with
             member _.Dispose () = subscription.Dispose()
 
+        interface ICache<Position, 'Data * 'Visual> with
+            member _.Cache =
+                match activeCache with
+                | A -> cacheA
+                | B -> cacheB
+            
+        abstract member Create : 'Data -> 'Visual
+        abstract member Update : 'Data -> 'Visual -> 'Data -> 'Visual
 
-    type Env() =
-        let cacheText = cache()
-        let cacheContainer = cache()
+    type IText<'Visual> =
+        abstract member Text : ElementBase<string, 'Visual>
 
-        member _.Wipe() = // TODO flesh out
-            cacheText.Clear()
-            cacheContainer.Clear()
-
-        interface IText<IVisualElement> with
-            member val Text =
-                { new IElement<string, _> with
-                    member _.Cache = cacheText
-                    member _.Create content = new VisualTextElement (content) :> IVisualElement
-                }
-
-        interface IContainer<IVisualElement, VisualContainer> with
-            member val Container =
-                { new IElement<List<IVisualElement>, VisualContainer> with
-                    member _.Cache = cacheContainer
-                    member _.Create children = new VisualContainer (children)
-                }
+    type IContainer<'Visual, 'Container> =
+        abstract member Container : ElementBase<List<'Visual>, 'Container>
 
 module RenderElements =
     open CommonNodeInterfaces
 
-    let text content =
-        fun (env: #IText<_>) (pos: Position) ->
-            env.Text.Create content
+    let cachedElement (elGet: 'env -> ElementBase<_,_>) content env key =
+        let el = elGet env
+        let cache = (el :> ICache<_,_>).Cache
 
-    let div (children: List<'env -> Position -> 'visual>) =
-        fun (env: #IContainer<_,_>) (pos: Position) ->
-            let x =
+        match cache.TryGetValue key with
+        | true, (lastData, lastVisual) -> el.Update lastData lastVisual content
+        | _ -> el.Create content
+
+    let text<'t> = cachedElement <| fun (env: IText<'t>) -> env.Text
+
+    let div
+        (children: List<'env -> Position -> 'visual>)
+        (env: #IContainer<_,_>)
+        (pos: Position) =
+            let renderedNodes =
                 children
                  |> List.map
                     (fun x -> x env pos )
-            let y = x |> env.Container.Create
+
+            let container = renderedNodes |> env.Container.Create
             ()
+
+module ImplementationHostA =
+    open CommonNodeInterfaces
+    open Design.Host
+
+    type EnvA() =
+        let swapCache = SwapCache()
+
+        interface ISwapCache with
+            member _.Cache = swapCache
+
+        interface IText<IVisualElement> with
+            member val Text =
+                { new ElementBase<string, _>(swapCache.cacheEvents) with
+                    member _.Create content = new VisualTextElement (content) :> IVisualElement
+                    member _.Update lastData lastNode content = lastNode // TODO
+                }
+
+        interface IContainer<IVisualElement, VisualContainer> with
+            member val Container =
+                { new ElementBase<List<IVisualElement>, VisualContainer>(swapCache.cacheEvents) with
+                    member _.Create children = new VisualContainer (children)
+                    member _.Update lastData lastNode children = lastNode // TODO
+                }
+
+module ImplementationHostB =
+    open CommonNodeInterfaces
+    open Design.Host
+
+    type EnvB() =
+        let swapCache = SwapCache()
+
+        interface ISwapCache with
+            member _.Cache = swapCache
+
+        interface IText<IVisualElement> with
+            member val Text =
+                { new ElementBase<string, _>(swapCache.cacheEvents) with
+                    member _.Create content = new VisualTextElement (content) :> IVisualElement
+                    member _.Update lastData lastNode content = lastNode // TODO
+                }
+
+        interface IContainer<IVisualElement, VisualContainer> with
+            member val Container =
+                { new ElementBase<List<IVisualElement>, VisualContainer>(swapCache.cacheEvents) with
+                    member _.Create children = new VisualContainer (children)
+                    member _.Update lastData lastNode children = lastNode // TODO
+                }
 
 module View =
     open RenderElements
-    open ImplementationHost
+    open ImplementationHostA
 
-    let view : Env -> Position -> Unit =
+    let x y =
+        text "hi" y
+
+    let view : EnvA -> Position -> Unit =
         div [
             text "hi"
         ]
 
-    view (Env()) (Ordinal 0)
-
-    // TODO-next how does the cache work then?
+    // view (Env()) (Ordinal 0)
 
 
 module ScratchInterfaceType =
