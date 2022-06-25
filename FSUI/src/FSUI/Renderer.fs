@@ -16,24 +16,6 @@ and Node<'custom, 'data> =
 
 // type PositionedNode<'t> = Position * Node<'t>
 
-module Scratch =
-    let x = typeof<string>
-
-    type StaticCache<'v>() =
-        static let cache : System.Collections.Generic.IDictionary<Position, 'v> = dict []
-
-        member x.Get pos = 
-            cache.TryGetValue
-
-    type Cache<'key> =
-        let caches = Map<System.Type, Map<'key, 'value>>
-
-        member _.GetThing<'T> key =
-            // if we have a cache of that type
-            
-    
-    let getThing<'T> cache =
-        cache.GetThing<'T> "mykey"
 
 module Cache =
     type TypedCache<'k> =
@@ -41,7 +23,7 @@ module Cache =
             // lookup correct cache based on type
             ()
     
-    type PositionCache<'node> = Map<Position, 'node>
+    type PositionCache<'node> = Map<string, 'node>
 
     type Caches<'node> = {
         stale : PositionCache<'node>
@@ -78,9 +60,11 @@ module Renderer =
                 ()
 
 module Element =
-    let text string =
-        function
-        | Some oldNode ->
+    ()
+    // let text string =
+    //     function
+    //     | Some oldNode ->
+    //         ()
 
 module Domain =
     type Message =
@@ -96,27 +80,17 @@ module Domain =
     
     let update (x: Message) = ()
 
-    let node = 
-        {
-            node =
-                Node<Custom, _>.Container {
-                    ordinal = [
-                        { node = Node.Text "hi"
-                          data = [ Bold ]
-                        }
-                    ]
-                    nominal = Map.empty
-                }
-            data =
-                [ Green ]
+    let node =
+        { node = Node.Text "hi"
+          data = [ Bold ]
         }
 
 module Run = 
     let cache = Cache.create()
-    let node = ComponentUI.node
+    let node = Domain.node
 
     let customRenderer =
         function
-        | ComponentUI.Spotlight (x, y) -> ()
+        | Domain.Spotlight (x, y) -> ()
 
     Renderer.render customRenderer cache node

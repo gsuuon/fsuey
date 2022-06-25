@@ -9,10 +9,10 @@
     <Compile Include="Design.Common.fs" />
     <Compile Include="Design.Host.fs" />
     <Compile Include="Scratch.ObjectExpression.fs" />
-    <Compile Include="Scratch.DependencyInjection.fs" />
-    <Compile Include="Scratch.DerivedStaticGeneric.fs" />
-    <Compile Include="Scratch.InstancedGlobalCache.fs" />
-    <Compile Include="Design.UsageSketch.fs" />
+    <!-- <Compile Include="Scratch.DependencyInjection.fs" /> -->
+    <!-- <Compile Include="Scratch.DerivedStaticGeneric.fs" /> -->
+    <!-- <Compile Include="Scratch.InstancedGlobalCache.fs" /> -->
+    <!-- <Compile Include="Scratch.TopDownSketch.fs" /> -->
   </ItemGroup>
 
 </Project>

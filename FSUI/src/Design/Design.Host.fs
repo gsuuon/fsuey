@@ -1,14 +1,18 @@
 namespace Design.Host
 
-type Key = Ordinal of int
+type IVisualElement = interface end
 
 type VisualElement() =
+    interface IVisualElement
     interface System.IDisposable with
         member _.Dispose() = ()
 
 type VisualTextElement(content: string) =
     inherit VisualElement()
 
-type VisualContainer(children: VisualElement list) =
+type VisualButtonElement(label: string, action: unit -> unit) =
+    inherit VisualElement()
+
+type VisualContainer(children: IVisualElement list) =
     inherit VisualElement()
     member _.Children = children

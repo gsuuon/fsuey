@@ -50,7 +50,6 @@ type CacheAccess(idx: int) =
         for removal in removals do
             removal()
 
-
 module Sketches =
     type Foo() =
         member _.Remove () = ()
