@@ -66,6 +66,9 @@ module CommonNodeInterfaces =
     type IContainer<'Visual, 'Container> =
         abstract member Container : ElementBase<List<'Visual>, 'Container>
 
+    type IButton<'Visual> =
+        abstract member Button : ElementBase<string * (unit -> unit), 'Visual>
+
 module RenderElements =
     open CommonNodeInterfaces
 
@@ -78,6 +81,7 @@ module RenderElements =
         | _ -> el.Create content
 
     let text<'t> = cachedElement <| fun (env: IText<'t>) -> env.Text
+    let button<'t> = cachedElement <| fun (env: IButton<_>) -> env.Button
 
     let div
         (children: List<'env -> Position -> 'visual>)
@@ -103,9 +107,16 @@ module ImplementationHostA =
 
         interface IText<IVisualElement> with
             member val Text =
-                { new ElementBase<string, _>(swapCache.cacheEvents) with
-                    member _.Create content = new VisualTextElement (content) :> IVisualElement
+                { new ElementBase<string, IVisualElement>(swapCache.cacheEvents) with
+                    member _.Create content = new VisualTextElement (content)
                     member _.Update lastData lastNode content = lastNode // TODO
+                }
+
+        interface IButton<IVisualElement> with
+            member val Button =
+                { new ElementBase<_, _>(swapCache.cacheEvents) with
+                    member _.Create ((label, action)) = new VisualButtonElement(label, action) :> IVisualElement
+                    member _.Update lastData lastNode content = lastNode
                 }
 
         interface IContainer<IVisualElement, VisualContainer> with
@@ -127,8 +138,8 @@ module ImplementationHostB =
 
         interface IText<IVisualElement> with
             member val Text =
-                { new ElementBase<string, _>(swapCache.cacheEvents) with
-                    member _.Create content = new VisualTextElement (content) :> IVisualElement
+                { new ElementBase<string, IVisualElement >(swapCache.cacheEvents) with
+                    member _.Create content = new VisualTextElement (content)
                     member _.Update lastData lastNode content = lastNode // TODO
                 }
 
@@ -142,17 +153,35 @@ module ImplementationHostB =
 module View =
     open RenderElements
     open ImplementationHostA
+    open ImplementationHostB
 
-    let x y =
-        text "hi" y
+    let hi env =
+        text "hi" env
 
     let view : EnvA -> Position -> Unit =
         div [
             text "hi"
+            button ("Hey", fun () -> ())
         ]
 
     // view (Env()) (Ordinal 0)
 
+module ScratchInterfaceCollection =
+    type IFoo = interface end
+    type FooA() = interface IFoo with
+
+    let fnA x = FooA()
+    let fnB x = { new IFoo }
+
+    let works : List<int -> IFoo> =
+        [ fun x -> FooA()
+          fun x -> { new IFoo }
+        ]
+
+    // let doesnt : List<int -> IFoo> =
+    //     [ fnA
+    //       fnB
+    //     ]
 
 module ScratchInterfaceType =
     type Foo = interface end
