@@ -109,7 +109,9 @@ module ImplementationHostA =
             member val Text =
                 { new ElementBase<string, IVisualElement>(swapCache.cacheEvents) with
                     member _.Create content = new VisualTextElement (content)
-                    member _.Update lastData lastNode content = lastNode // TODO
+                    member _.Update lastData lastNode content =
+                        printfn "Updated text, was '%s' now '%s'" lastData content
+                        lastNode // TODO
                 }
 
         interface IButton<IVisualElement> with
