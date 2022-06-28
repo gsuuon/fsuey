@@ -60,6 +60,15 @@ module CommonNodeInterfaces =
         abstract member Create : 'Data -> 'Visual
         abstract member Update : 'Data -> 'Visual -> 'Data -> 'Visual
 
+        member element.Render content position : Unit =
+            match (element :> ICache<_,_>).Cache.TryGetValue position with
+            | true, (lastData, lastVisual) ->
+                let el = element.Update lastData lastVisual content
+                () // TODO
+            | _ ->
+                let el = element.Create content
+                () // TODO
+
     type IText<'Visual> =
         abstract member Text : ElementBase<string, 'Visual>
 
@@ -72,22 +81,8 @@ module CommonNodeInterfaces =
 module RenderElements =
     open CommonNodeInterfaces
 
-    let inline cachedElement<'data, 'visual, 'env>
-        (elGet: 'env -> ElementBase<'data, 'visual>)
-        (content: 'data)
-        (env: 'env)
-        (key: Position)
-            : 'visual
-        =
-        let el = elGet env
-        let cache = (el :> ICache<_,_>).Cache
-
-        match cache.TryGetValue key with
-        | true, (lastData, lastVisual) -> el.Update lastData lastVisual content
-        | _ -> el.Create content
-
-    let text<'t> = cachedElement <| fun (env: IText<_>) -> env.Text
-    let button = cachedElement <| fun (env: IButton<_>) -> env.Button
+    let text x (e: #IText<_>) = e.Text.Render x
+    let button x (e: #IButton<_>) = e.Button.Render x
 
     let div
         (children: List<'env -> Position -> 'visual>)
@@ -120,10 +115,10 @@ module ImplementationHostA =
                         lastNode // TODO
                 }
 
-        interface IButton<IVisualElement> with
+        interface IButton<VisualButtonElement> with
             member val Button =
                 { new ElementBase<_, _>(swapCache.cacheEvents) with
-                    member _.Create ((label, action)) = new VisualButtonElement(label, action) :> IVisualElement
+                    member _.Create ((label, action)) = new VisualButtonElement(label, action)
                     member _.Update lastData lastNode content = lastNode
                 }
 
@@ -133,6 +128,19 @@ module ImplementationHostA =
                     member _.Create children = new VisualContainer (children)
                     member _.Update lastData lastNode children = lastNode // TODO
                 }
+
+    module InlinedCachedElement =
+        open RenderElements
+
+        let foo (env: 'T) =
+            let pos = Ordinal 0
+
+            let fny = button ("ok", fun () -> ())
+            let fnx = text "hi"
+
+            [ fnx; fny ] |> List.map (fun x -> x env pos) |> ignore
+
+        let x = foo (EnvA())
 
 module ImplementationHostB =
     open CommonNodeInterfaces
@@ -166,139 +174,30 @@ module View =
     open CommonNodeInterfaces
     open Design.Host
 
-    module WrapperScratch =
-        type VisualNode<'env, 'collection> = VisualNode of ('env -> Position -> 'collection)
+    type Model = {
+        greet : string
+    }
 
-        let textNode content : VisualNode<#IText<_>, IVisualElement> =
-            VisualNode(
-                cachedElement
-                 <| fun env -> env.Text
-                 <| content
-            )
-
-        let buttonNode content : VisualNode<#IButton<_>, IVisualElement> =
-            VisualNode(
-                cachedElement
-                 <| fun env -> env.Button
-                 <| content
-            )
-
-        let nodes x =
-            [ textNode "hi"
-              buttonNode ("click", fun () -> ())
-                // all elements must be same type?
-            ]
-
-    let textA content env pos =
-        cachedElement
-         <| fun (env: IText<_>) -> env.Text
-         <| content
-         <| env
-         <| pos
-         :> IVisualElement
-
-    let hi env =
-        text "hi" env
-
-    let view : EnvA -> Position -> Unit =
+    let view model =
         div [
-            textA "hi"
+            text model.greet
             button ("Hey", fun () -> ())
         ]
 
-    // view (Env()) (Ordinal 0)
-
-// module TypeScratch =
-//     type IFoo = interface end
-
-//     type Broke<'A, 'B when 'A :> 'B>() = class end
-//     type Works<'A when 'A :> IFoo>() = class end
-//     type Bar<'Base> =
-//         abstract member Do<'T when 'T :> 'Base> : 'T -> unit
+    // view { greet = "hi" } (EnvA()) (Ordinal 0)
 
 module TypeScratch2 =
-    module Foo =
-        type IFoo = interface end
-        type FooA() = interface IFoo
-        type FooB() = interface IFoo
+    module StaticGeneric =
+        type IFoo =
+            abstract member Do : int -> Unit
 
-        let fnA x : FooA = FooA()
-        let fnB x : FooB = FooB()
+        type MyThing<'A>() =
+            static member foo () = Unchecked.defaultof<'A>
+            interface IFoo with
+                member _.Do x = ()
 
-        module DoesntWork =
-            ()
-            // let xsOfFlexIFoo : List<#IFoo> =
-            //     [ FooA() // Less generic
-            //       FooB() // Expected FooA
-            //     ]
+        open type MyThing<int> // whaaaat
 
-            // let fnsOfFlexIFoo : List<#IFoo> =
-            //     [ fnA 0 // Less generic
-            //       fnB 1 // Expected FooA
-            //     ]
+        let x = foo()
 
-        module DoesWork =
-            let xsOfIFoo : List<IFoo> =
-                [ FooA() // Less generic
-                  FooB() // Expected FooA
-                ]
-
-            let fnsOfIFoo : List<IFoo> =
-                [ fnA 0 // Less generic
-                  fnB 1 // Expected FooA
-                ]
-
-        module Lambdas =
-            // Doesn't work
-            // let xsOfIntToIFoo : List<int -> IFoo> =
-            //     [ fnA
-            //       fnB
-            //     ]
-
-
-            let xsOfFunIntToIFoo : List<int -> IFoo> =
-                [ fun x -> FooA()
-                  fun x -> FooB()
-                ]
-
-        module WrapperType =
-            type FooMaker(foo: IFoo) =
-                member _.Make x = foo
-
-            let fooMakers : List<FooMaker> =
-                [ FooMaker(FooA())
-                  FooMaker(FooB())
-                ]
-
-        module SDUWrapperType =
-            type WrappedFoo = WrappedFoo of IFoo
-
-            let fnA x = WrappedFoo(FooA())
-            let fnB x = WrappedFoo(FooB())
-
-            let fooMakers : List<int -> WrappedFoo> =
-                [ fnA
-                  fnB
-                ]
-
-    module Bar =
-        type Bar() = class end
-        type BarA() = inherit Bar()
-        type BarB() = inherit Bar()
-
-        module DoesntWork =
-            ()
-            // let xsOfFlexBar : List<#Bar> =
-            //     [ BarA() // Less generic
-            //       BarB() // Expected BarA
-            //     ]
-
-        let xsOfBar : List<Bar> =
-            [ BarA()
-              BarB()
-            ]
-
-    module FooSDU =
-        open Foo
-
-        type CaseFoo = CaseFoo of IFoo
+                
