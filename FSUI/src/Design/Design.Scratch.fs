@@ -1,4 +1,4 @@
-namespace Scratch.ObjectExpression
+namespace Design.Scratch
 
 module TypeScratch2 =
     module StaticGeneric =
