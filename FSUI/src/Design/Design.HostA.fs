@@ -1,5 +1,6 @@
 namespace Design.Host
 
+
 type IVisualElement = interface end
 
 type VisualElement() =
@@ -13,6 +14,6 @@ type VisualTextElement(content: string) =
 type VisualButtonElement(label: string, action: unit -> unit) =
     inherit VisualElement()
 
-type VisualContainer(children: IVisualElement list) =
+type VisualContainer() =
     inherit VisualElement()
-    member _.Children = children
+    member val Children : IVisualElement list = []
