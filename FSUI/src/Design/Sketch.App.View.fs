@@ -15,7 +15,7 @@ let view model =
         button ("Hey", fun () -> ())
     ]
 
-view { greet = "hi" } (EnvA()) (Ordinal 0)
+// let x = view { greet = "hi" } (EnvA()) (Ordinal 0)
     // TODO-next
     // how do containers work?
     // how do parent-child attach?

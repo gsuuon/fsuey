@@ -18,7 +18,10 @@ module VisualElements =
         inherit VisualElement()
         member val Children : IVisualElement list = []
 
-open CommonNodeInterfaces
+open VisualElements
+
+open Design.Common
+open Design.Common.Interfaces
 
 type Node() =
     interface INode with
