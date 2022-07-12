@@ -1,27 +1,8 @@
-namespace Design.HostA
-
-module VisualElements =
-    type IVisualElement = interface end
-
-    type VisualElement() =
-        interface IVisualElement
-        interface System.IDisposable with
-            member _.Dispose() = ()
-
-    type VisualTextElement(content: string) =
-        inherit VisualElement()
-
-    type VisualButtonElement(label: string, action: unit -> unit) =
-        inherit VisualElement()
-
-    type VisualContainer() =
-        inherit VisualElement()
-        member val Children : IVisualElement list = []
-
-open VisualElements
+module Design.HostA.Environment
 
 open Design.Common
 open Design.Common.Interfaces
+open Design.HostA.Elements
 
 type Node() =
     interface INode with
@@ -55,4 +36,3 @@ type EnvA() =
                 member _.Create children = new VisualContainer ()
                 member _.Update lastData lastNode children = lastNode // TODO
             }
-

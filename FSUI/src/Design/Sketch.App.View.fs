@@ -2,7 +2,7 @@ module Sketch.App.View
 
 open Design.Common
 open Design.Common.Interfaces
-open Design.HostA
+
 open Design.LayoutElements
 
 type Model = {
@@ -12,17 +12,31 @@ type Model = {
 let view model =
     div [
         text model.greet
-        button ("Hey", fun () -> ())
+        // button ("Hey", fun () -> ())
     ]
 
-// let x = view { greet = "hi" } (EnvA()) (Ordinal 0)
-    // TODO-next
-    // how do containers work?
-    // how do parent-child attach?
-    // container must specify that children return an attacher
-    // container must return a attachee
-    // let x = container result
-    // x.AddChild (child result)
-    // elements can't return Unit, but they don't need to return a collection type
-    // or their underlying object. just something the parent can use to attach.
+module Extension =
+    type Design.HostA.Elements.IVisualElement with
+        member _.Foo () = ()
 
+module GenericNode =
+    // open type Elements<Design.HostA.Environment.Node>
+    
+    let env = Design.HostA.Environment.EnvA()
+    let pos = Ordinal 0
+
+    let initialModel = {
+        greet = "Hi"
+    }
+    
+    // view initialModel env pos
+        // 1. The type 'Design.HostA.Environment.EnvA' is not compatible with the type 'IText<Design.HostA.Elements.VisualButtonElement>'
+            // val div:
+            //    children: List<'a -> Position -> 'node> ->
+            //    env     : 'a       (requires :> IContainer<'node,'b> ) ->
+            //    pos     : Position
+            //           -> unit
+
+            // * `'a` is Design.HostA.Environment.`EnvA`
+            // * `'b` is Design.HostA.Elements.`VisualButtonElement`
+            // * `'c` is `obj`

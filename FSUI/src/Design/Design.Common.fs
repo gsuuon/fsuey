@@ -16,6 +16,7 @@ module Interfaces =
         swap: Event<CacheTag>
         wipe: Event<unit>
     }
+
     let cache () = System.Collections.Generic.Dictionary()
         
     type SwapCache() =
@@ -74,17 +75,16 @@ module Interfaces =
             | true, (lastData, lastVisual) ->
                 let el = element.Update lastData lastVisual content
                 cache.Add(position, (content, el))
-                el
+                // return collectible
             | _ ->
                 let el = element.Create content
                 cache.Add(position, (content, el))
-                el
 
     type IText<'Visual> =
         abstract member Text : ElementBase<string, 'Visual>
 
-    type IContainer<'Visual, 'Container> =
-        abstract member Container : ElementBase<List<'Visual>, 'Container>
+    type IContainer<'Node, 'Visual> =
+        abstract member Container : ElementBase<List<'Node>, 'Visual>
 
     type IButton<'Visual> =
         abstract member Button : ElementBase<string * (unit -> unit), 'Visual>

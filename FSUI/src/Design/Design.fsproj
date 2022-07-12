@@ -8,10 +8,12 @@
   <ItemGroup>
     <Compile Include="Design.Common.fs" />
     <Compile Include="Design.LayoutElements.fs" />
-    <Compile Include="Design.HostA.fs" />
+    <Compile Include="Design.HostA.Elements.fs" />
+    <Compile Include="Design.HostA.Environment.fs" />
     <!-- <Compile Include="Design.HostB.fs" /> -->
     <Compile Include="Sketch.App.View.fs" />
     <Compile Include="Design.Scratch.fs" />
+    <Compile Include="Scratch.Collection.fs" />
   </ItemGroup>
 
 </Project>

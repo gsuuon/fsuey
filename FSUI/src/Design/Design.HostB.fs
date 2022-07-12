@@ -19,13 +19,13 @@ type EnvB() =
         member val Text =
             { new ElementBase<string, IVisualElement >(swapCache.cacheEvents) with
                 member _.Create content = new VisualTextElement (content)
-                member _.Update lastData lastNode content = lastNode // TODO
+                member _.Update lastData lastNode content = lastNode // TODO -- fill out
             }
 
     interface IContainer<Node, VisualContainer> with
         member val Container =
             { new ElementBase<List<Node>, VisualContainer>(swapCache.cacheEvents) with
                 member _.Create children = new VisualContainer ()
-                member _.Update lastData lastNode children = lastNode // TODO
+                member _.Update lastData lastNode children = lastNode // TODO -- fill out
             }
 
