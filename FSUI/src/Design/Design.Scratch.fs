@@ -191,3 +191,103 @@ module TypeScratch2 =
         // let z2' = z2 :> Thing<Foo>
             // Works
                 // I can cast the outer wrapper type, but I cannot automatically cast the inner type
+
+module Cache =
+    [<AbstractClass>]
+    type Text(getCache) =
+        abstract Create : unit -> unit
+        member _.Render (position: int) =
+            match getCache position with
+            | Some x -> ()
+            | None -> ()
+
+    type IText =
+        abstract member Text : Text
+
+    type ISwappable =
+        abstract Swap : unit -> unit
+
+    type Swappable<'K,'V>() =
+        let cacheA = Map.empty
+        let cacheB = Map.empty
+        let mutable isA = true
+        member this.Cache = if isA then cacheA else cacheB
+        member this.Find x = Map.find x this.Cache
+        interface ISwappable with
+            member _.Swap () = isA <- not isA
+
+    type BaseProvider() =
+        let mutable collection = []
+
+        member _.MkCache =
+            let swap = Swappable()
+            collection <- (swap :> ISwappable) :: collection
+            swap.Find
+
+        member _.Swap () = collection |> List.iter (fun swappable -> swappable.Swap())
+
+    type Provider() =
+        inherit BaseProvider()
+
+        interface IText with
+            member val Text =
+                { new Text(base.MkCache) with
+                    member _.Create () = ()
+                }
+
+    let text (x: #IText) =
+        x.Text.Render 0
+
+    let renderer view (env: #BaseProvider) =
+        fun () ->
+            view env
+            env.Swap()
+
+    let env = Provider()
+    let render = renderer text env
+
+
+// module Cache =
+//     type Element(cache) = class end
+
+//     type Cache(ctrl) = class end
+
+//     type Provider() =
+//         let cache = cache()
+
+//         interface ISwapCache with =
+//             member val swap = cache.swap
+
+//         member val Text =
+//             { new Element(Cache(cache.control)) }
+
+//     type BaseProvider()
+//         interface ISwap with
+//             member val Cache = Cache()
+
+//     type Provider() =
+//         inherit BaseProvider()
+//         let x = this.cache
+
+//         member val Text =
+
+
+//     let renderer view =
+//         let dispatch x = ()
+//         let pos = root
+
+//         fun model (env: #ISwapCache) ->
+//             view model dispatch env root
+//             env.swap()
+
+//     module Layout =
+//         let view model =
+//             div []
+
+//     module App =
+//         let view = swapCache Layout.view
+//         let model = {}
+//         let env = Provider(Cache())
+
+//         view model
+
