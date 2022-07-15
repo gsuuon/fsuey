@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <FSUIProjectDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)\..\src\FSUI\FSUI.fsproj'))</FSUIProjectDir>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <Configuration>Release</Configuration>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <Tailcalls>true</Tailcalls>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.12.1"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(FSUIProjectDir)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Benchmarks.fs" />
+  </ItemGroup>
+</Project>
