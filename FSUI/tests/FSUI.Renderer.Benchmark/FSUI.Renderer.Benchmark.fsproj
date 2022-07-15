@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6</TargetFramework>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -23,10 +24,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../FSUI.Test/FSUI.Test.fsproj" />
     <ProjectReference Include="$(FSUIProjectDir)" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Include="Benchmarks.fs" />
+    <Compile Include="Program.fs" />
   </ItemGroup>
 </Project>

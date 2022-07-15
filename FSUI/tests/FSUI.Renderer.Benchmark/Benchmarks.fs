@@ -1,39 +1,47 @@
-﻿module FSUI.Benchmark 
+﻿module FSUI.Renderer.Benchmarks
 
 open System
 open BenchmarkDotNet
 open BenchmarkDotNet.Attributes
 
-type Benchmarks () =
-    [<Params(0, 1, 15, 100)>]
-    member val public sleepTime = 0 with get, set
+open FSUI.Test.Provider
+open FSUI.Test.Host
+open FSUI.Elements.Views
+open FSUI.Renderer.Element
 
-    // [<GlobalSetup>]
-    // member self.GlobalSetup() =
-    //     printfn "%s" "Global Setup"
+let pos = Root
+let env = Env()
 
-    // [<GlobalCleanup>]
-    // member self.GlobalCleanup() =
-    //     printfn "%s" "Global Cleanup"
+type Model =
+    { name : string
+      pic : string
+    }
 
-    // [<IterationSetup>]
-    // member self.IterationSetup() =
-    //     printfn "%s" "Iteration Setup"
-    
-    // [<IterationCleanup>]
-    // member self.IterationCleanup() =
-    //     printfn "%s" "Iteration Cleanup"
+let view model =
+    div [
+        text [] $"Hi {model.name}"
+        image [] model.pic
+    ] []
+
+let viewHand model =
+    VisualCollection [
+        VisualText $"Hi {model.name}"
+        VisualImage model.pic
+    ]
+
+let model =
+    {
+        name = "foo"
+        pic = "foo.webp"
+    }
+
+[<ShortRunJob>]
+[<PlainExporter>]
+type RendererBenchmark () =
+    [<Benchmark(Baseline=true)>]
+    member this.HandWritten () =
+        viewHand model
 
     [<Benchmark>]
-    member this.Thread () = System.Threading.Thread.Sleep(this.sleepTime)
-
-    [<Benchmark>]
-    member this.Task () = System.Threading.Tasks.Task.Delay(this.sleepTime)
-
-    [<Benchmark>]
-    member this.AsyncToTask () = Async.Sleep(this.sleepTime) |> Async.StartAsTask
-
-    [<Benchmark>]
-    member this.AsyncToSync () = Async.Sleep(this.sleepTime) |> Async.RunSynchronously
-
-
+    member this.FsuiRender () =
+        view model env pos
