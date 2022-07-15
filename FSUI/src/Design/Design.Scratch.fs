@@ -291,3 +291,13 @@ module Cache =
 
 //         view model
 
+
+module Overloads =
+    type Mod() =
+        static member foo (y: int) : bool = y > 0
+        static member foo ((y,z): int * string) : bool = y > 0
+
+    open type Mod
+
+    let x = foo 0
+    let y = (0, "hi") |> foo
