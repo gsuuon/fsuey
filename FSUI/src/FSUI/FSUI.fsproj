@@ -10,6 +10,7 @@
     <Compile Include="Renderer/Cache.fs" />
     <Compile Include="Renderer/Provider.fs" />
     <Compile Include="Renderer/Element.fs" />
+    <Compile Include="Renderer/Make.fs" />
     <Compile Include="Elements/Interfaces.fs" />
     <Compile Include="Elements/Views.fs" />
   </ItemGroup>
