@@ -9,7 +9,7 @@ let inline render ([<InlineIfLambda>]readElement: 'env -> Element<_,_,_,_>) prop
 let inline text x = render (fun (env:#IText<_,_,_>) -> env.Text) x
 let inline image x = render (fun (env: #IImage<_,_,_>) -> env.Image) x
 
-let div children props (env: #IContainer<_,_,_>) pos =
+let inline div props children (env: #IContainer<_,_,_>) pos =
     let nodes : 'node list =
         children |> List.mapi (fun idx fnode -> fnode env (Ordinal (pos, idx)))
 

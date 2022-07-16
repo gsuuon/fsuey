@@ -17,27 +17,70 @@ type Model =
       pic : string
     }
 
-let view model =
-    div [
-        text [] $"Hi {model.name}"
-        image [] model.pic
-    ] []
+[<ShortRunJob>]
+[<MarkdownExporterAttribute.Default>]
+type SimpleBenchmark () =
+    let model =
+        {
+            name = "foo"
+            pic = "foo.webp"
+        }
 
-let viewHand model =
-    VisualCollection [
-        VisualText $"Hi {model.name}"
-        VisualImage model.pic
-    ]
+    let view model =
+        div [] [
+            text [] $"Hi {model.name}"
+            image [] model.pic
+        ]
 
-let model =
-    {
-        name = "foo"
-        pic = "foo.webp"
-    }
+    let viewHand model =
+        VisualCollection [
+            VisualText $"Hi {model.name}"
+            VisualImage model.pic
+        ]
+
+    [<Benchmark(Baseline=true)>]
+    member this.HandWritten () =
+        viewHand model
+
+    [<Benchmark>]
+    member this.FsuiRender () =
+        view model env pos
 
 [<ShortRunJob>]
-[<PlainExporter>]
-type RendererBenchmark () =
+[<MarkdownExporterAttribute.Default>]
+type MediumBenchmark () =
+    let model =
+        {
+            name = "foo"
+            pic = "foo.webp"
+        }
+
+    let view model =
+        div [] [
+            text [] "Title"
+            div [] [
+                text [] "Subheader"
+                div [] [
+                    image [] model.pic
+                ]
+                text [] $"Hi {model.name}"
+            ]
+            text [] "Footer"
+        ]
+
+    let viewHand model =
+        VisualCollection [
+            VisualText "Title"
+            VisualCollection [
+                VisualText "Subheader"
+                VisualCollection [
+                    VisualImage model.pic
+                ]
+                VisualText $"Hi {model.name}"
+            ]
+            VisualText "Footer"
+        ]
+
     [<Benchmark(Baseline=true)>]
     member this.HandWritten () =
         viewHand model
