@@ -55,18 +55,21 @@ type MediumBenchmark () =
             pic = "foo.webp"
         }
 
-    let view model =
-        div [] [
-            text [] "Title"
+    let viewFsui model =
+        let view model =
             div [] [
-                text [] "Subheader"
+                text [] "Title"
                 div [] [
-                    image [] model.pic
+                    text [] "Subheader"
+                    div [] [
+                        image [] model.pic
+                    ]
+                    text [] $"Hi {model.name}"
                 ]
-                text [] $"Hi {model.name}"
+                text [] "Footer"
             ]
-            text [] "Footer"
-        ]
+
+        view model env pos
 
     let viewHand model =
         VisualCollection [
@@ -82,9 +85,7 @@ type MediumBenchmark () =
         ]
 
     [<Benchmark(Baseline=true)>]
-    member this.HandWritten () =
-        viewHand model
+    member this.HandWritten () = viewHand model
 
     [<Benchmark>]
-    member this.FsuiRender () =
-        view model env pos
+    member this.FsuiRender () = viewFsui model
