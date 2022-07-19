@@ -5,35 +5,37 @@ open System.Collections.Generic
 type ISwapper =
     abstract Swap : unit -> unit
 
-type Swapper<'K, 'V>([<InlineIfLambda>]mkCache: unit -> IDictionary<'K, 'V>) =
+type Swapper<'K, 'data, 'props, 'visual>(
+    [<InlineIfLambda>]mkCache: unit -> IDictionary<'K, 'data * 'props * 'visual>,
+    remove : 'visual -> unit
+    ) =
     let cacheA = mkCache()
     let cacheB = mkCache()
 
-    let mutable isA = false
+    let mutable fresh = cacheA
+    let mutable stale = cacheB
 
-    member _.Cache =
-        if isA then cacheA else cacheB
-
-    member this.Find key =
-        match this.Cache.TryGetValue key with
-        | true, v -> Some v
-        | _ -> None
-
-    member this.Save key value =
-        this.Cache.Add(key, value)
+    member _.Fresh = fresh
+    member _.Stale = stale
 
     interface ISwapper with
+        // Swap after view
+        // so that fresh has live, stale has stale before swap
         member this.Swap () = 
-            this.Cache.Clear()
-            isA <- not isA
+            for (KeyValue (_,(_,_,x))) in stale do
+                remove x
+
+            let fresh' = fresh
+            fresh <- stale
+            stale <- fresh'
 
 open System.Collections.Generic
 
 type Swappers() =
     let mutable collection = []
 
-    member _.Create () =
-        let swap = Swapper(fun () -> Dictionary())
+    member _.Create (remove) =
+        let swap = Swapper((fun () -> Dictionary()), remove)
         collection <- (swap :> ISwapper) :: collection
         swap
 
