@@ -3,7 +3,7 @@ namespace FSUI.Renderer.Unity.Hierarchy
 open UnityEngine
 open UnityEngine.UIElements
 
-type WrappedElement =
+type UnityNode =
     | Screen of VisualElement
     | World of GameObject
         // TODO probably not actually a game object, just too tired rn

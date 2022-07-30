@@ -20,7 +20,7 @@ type UnityProps =
 
 [<AbstractClass>]
 type ScreenSpace<'data, 'element when 'element :> VisualElement>(provider: Provider) =
-    inherit Element<'data, UnityProps, 'element, WrappedElement>(
+    inherit Element<'data, UnityProps, 'element, UnityNode>(
         (fun x -> Screen x),
         provider.Cache.Create VisualElement.remove
     )
@@ -28,7 +28,7 @@ type ScreenSpace<'data, 'element when 'element :> VisualElement>(provider: Provi
 // TODO worldspace
 [<AbstractClass>]
 type WorldSpace<'data>(provider: Provider) =
-    inherit Element<'data, UnityProps, GameObject, WrappedElement>(
+    inherit Element<'data, UnityProps, GameObject, UnityNode>(
         (fun x -> World x),
         provider.Cache.Create GameObject.Destroy
     )
@@ -36,7 +36,7 @@ type WorldSpace<'data>(provider: Provider) =
 type UnityProvider() as this =
     inherit Provider()
 
-    let addChildren (xs: WrappedElement list) (parent: VisualElement) =
+    let addChildren (xs: UnityNode list) (parent: VisualElement) =
         xs
          |> List.iter
             (function
@@ -45,9 +45,9 @@ type UnityProvider() as this =
              )
         parent
 
-    interface IContainer<UnityProps, VisualElement, WrappedElement> with
+    interface IContainer<UnityProps, VisualElement, UnityNode> with
         member val Container =
-            { new ScreenSpace<WrappedElement list, VisualElement>(this) with
+            { new ScreenSpace<UnityNode list, VisualElement>(this) with
                 member _.Create data props =
                     new VisualElement() |> addChildren data
 
@@ -56,7 +56,7 @@ type UnityProvider() as this =
                     el |> addChildren data
             }
 
-    interface IText<UnityProps, Label, WrappedElement> with
+    interface IText<UnityProps, Label, UnityNode> with
         member val Text =
             { new ScreenSpace<string, Label>(this) with
                     // TODO props
