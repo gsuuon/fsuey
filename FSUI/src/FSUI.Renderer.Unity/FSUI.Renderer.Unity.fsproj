@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UnityEditorVersion>2021.3.2f1</UnityEditorVersion>
   </PropertyGroup>
@@ -16,8 +16,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="Hierarchy.fs" />
     <Compile Include="Interfaces.fs" />
     <Compile Include="Provider.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" ExcludeAssets="all" />
+    <Reference Include="./FSharp.Core.dll" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,41 +8,46 @@ open FSUI.Renderer.Element
 open FSUI.Elements.Interfaces
 
 open FSUI.Renderer.Unity.Interfaces
+open FSUI.Renderer.Unity.Hierarchy
+
+[<AutoOpen>]
+module VisualExtensions =
+    type VisualElement with
+        static member inline remove (x: #VisualElement) = x.RemoveFromHierarchy()
 
 type UnityProps =
     | Class of string
 
 [<AbstractClass>]
-type ScreenSpace<'data, 'element when 'element :> VisualElement>(cache) =
+type ScreenSpace<'data, 'element when 'element :> VisualElement>(provider: Provider) =
     inherit Element<'data, UnityProps, 'element, WrappedElement>(
         (fun x -> Screen x),
-        (fun x -> x.RemoveFromHierarchy()),
-        cache
+        provider.Cache.Create VisualElement.remove
     )
 
 // TODO worldspace
 [<AbstractClass>]
-type WorldSpace<'data>(cache) =
+type WorldSpace<'data>(provider: Provider) =
     inherit Element<'data, UnityProps, GameObject, WrappedElement>(
         (fun x -> World x),
-        (fun x -> GameObject.Destroy x),
-        cache
+        provider.Cache.Create GameObject.Destroy
     )
 
-type UnityUITKProvider() =
+type UnityProvider() as this =
     inherit Provider()
 
-    let addChildren (xs: WrappedElement list) (el: VisualElement) =
-        xs |> List.iter
-                (function
-                 | Screen child -> el.Add child
-                 | World x -> () // TODO
-                 )
-        el
+    let addChildren (xs: WrappedElement list) (parent: VisualElement) =
+        xs
+         |> List.iter
+            (function
+             | Screen child -> parent.Add child
+             | World x -> () // TODO
+             )
+        parent
 
     interface IContainer<UnityProps, VisualElement, WrappedElement> with
-        member _.Container =
-            { new ScreenSpace<WrappedElement list, VisualElement>(base.Cache) with
+        member val Container =
+            { new ScreenSpace<WrappedElement list, VisualElement>(this) with
                 member _.Create data props =
                     new VisualElement() |> addChildren data
 
@@ -52,8 +57,8 @@ type UnityUITKProvider() =
             }
 
     interface IText<UnityProps, Label, WrappedElement> with
-        member _.Text =
-            { new ScreenSpace<string, Label>(base.Cache) with
+        member val Text =
+            { new ScreenSpace<string, Label>(this) with
                     // TODO props
                 member _.Create data props =
                     Label data
@@ -63,8 +68,8 @@ type UnityUITKProvider() =
             }
 
     interface ISpotlight<UnityProps> with
-        member _.Spotlight =
-            { new WorldSpace<Vector3>(base.Cache) with
+        member val Spotlight =
+            { new WorldSpace<Vector3>(this) with
                 member _.Create data props = new GameObject()
                 member _.Update data' props' gO data props = gO
             }
