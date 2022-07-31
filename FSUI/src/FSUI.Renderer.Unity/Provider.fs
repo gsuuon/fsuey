@@ -10,10 +10,7 @@ open FSUI.Elements.Interfaces
 open FSUI.Renderer.Unity.Interfaces
 open FSUI.Renderer.Unity.Hierarchy
 
-[<AutoOpen>]
-module VisualExtensions =
-    type VisualElement with
-        static member inline remove (x: #VisualElement) = x.RemoveFromHierarchy()
+open type UnityNode
 
 type UnityProps =
     | Class of string
@@ -22,38 +19,29 @@ type UnityProps =
 type ScreenSpace<'data, 'element when 'element :> VisualElement>(provider: Provider) =
     inherit Element<'data, UnityProps, 'element, UnityNode>(
         (fun x -> Screen x),
-        provider.Cache.Create VisualElement.remove
+        provider.Cache.Create UnityNode.remove
     )
 
 // TODO worldspace
 [<AbstractClass>]
 type WorldSpace<'data>(provider: Provider) =
-    inherit Element<'data, UnityProps, GameObject, UnityNode>(
+    inherit Element<'data, UnityProps, GameObjectNode, UnityNode>(
         (fun x -> World x),
-        provider.Cache.Create GameObject.Destroy
+        provider.Cache.Create UnityNode.remove
     )
 
 type UnityProvider() as this =
     inherit Provider()
 
-    let addChildren (xs: UnityNode list) (parent: VisualElement) =
-        xs
-         |> List.iter
-            (function
-             | Screen child -> parent.Add child
-             | World x -> () // TODO
-             )
-        parent
-
     interface IContainer<UnityProps, VisualElement, UnityNode> with
         member val Container =
             { new ScreenSpace<UnityNode list, VisualElement>(this) with
                 member _.Create data props =
-                    new VisualElement() |> addChildren data
+                    addChildren (data, new VisualElement())
 
                 /// cache swap wipes out stale children, we don't need to remove them or compare here
                 member _.Update data' props' el data props =
-                    el |> addChildren data
+                    addChildren (data, el)
             }
 
     interface IText<UnityProps, Label, UnityNode> with
@@ -70,7 +58,11 @@ type UnityProvider() as this =
     interface ISpotlight<UnityProps> with
         member val Spotlight =
             { new WorldSpace<Vector3>(this) with
-                member _.Create data props = new GameObject()
+                member _.Create data props =
+                    { gameObject = new GameObject()
+                      visualElementParent = Unchecked.defaultof<_>
+                        // NOTE this is just placeholder, I'm abandoning this interlaced visual/gameobject path for an explicit container element
+                    }
                 member _.Update data' props' gO data props = gO
             }
 
