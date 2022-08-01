@@ -6,7 +6,7 @@ type ISwapper =
     abstract Swap : unit -> unit
 
 type Swapper<'K, 'data, 'props, 'visual>(
-    [<InlineIfLambda>]mkCache: unit -> IDictionary<'K, 'data * 'props * 'visual>,
+    [<InlineIfLambda>]mkCache: unit -> Dictionary<'K, 'data * 'props * 'visual>,
     remove : 'visual -> unit
     ) =
     let cacheA = mkCache()
@@ -24,6 +24,8 @@ type Swapper<'K, 'data, 'props, 'visual>(
         member this.Swap () = 
             for (KeyValue (_,(_,_,x))) in stale do
                 remove x
+
+            stale.Clear()
 
             let fresh' = fresh
             fresh <- stale

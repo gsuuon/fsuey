@@ -8,6 +8,13 @@ type Position =
     | Nominal of parent: Position * name: string * insertAfter: int
     | Root
 
+/// Semantics determined by application
+/// 'data is the input type
+/// 'props is differenced items, properties. TODO
+/// 'visual is the cached type. Typically the actual item rendered, so that update is type-safe.
+/// 'node is the collection type to be used in containers. Typically a root type.
+///    'node is not cached, but is re-wrapped each render to provide to container.
+///     Generally best to be statically castable.
 [<AbstractClass>]
 type Element<'data, 'props, 'visual, 'node>
     (
@@ -20,7 +27,10 @@ type Element<'data, 'props, 'visual, 'node>
         el
 
     member this.Render (data: 'data) (props: 'props) (pos: Position) : 'node =
-        match cache.Stale.TryGetValue pos with
+        let (exists, stale) = cache.Stale.Remove pos
+            // for some reason normal match with syntax doesn't work here
+        
+        match exists, stale with
         | true, (cachedData, cachedProps, cachedVisual) ->
             this.Update cachedData cachedProps cachedVisual data props
         | _ ->
