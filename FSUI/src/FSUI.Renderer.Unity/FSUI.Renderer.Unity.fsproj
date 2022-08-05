@@ -33,6 +33,16 @@
     <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.UIElementsModule.dll">
         <Private>false</Private>
     </Reference>
+    <!-- These are to be able to inherit VisualElement in VisualGameObjectContainer -->
+    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.TextRenderingModule.dll">
+        <Private>false</Private>
+    </Reference>
+    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.UIElementsNativeModule.dll">
+        <Private>false</Private>
+    </Reference>
+    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.IMGUIModule.dll">
+        <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
 </Project>

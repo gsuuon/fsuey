@@ -31,6 +31,10 @@ type UnityNode =
         | World gNode -> 
             gNode.visualElementParent <- parent
 
+    static member addChildren(children: VisualElement list, parent: VisualElement) =
+        children |> List.iter parent.Add
+        parent
+
     static member addChildren(children: UnityNode list, parent: VisualElement) =
         children
          |> List.iter
