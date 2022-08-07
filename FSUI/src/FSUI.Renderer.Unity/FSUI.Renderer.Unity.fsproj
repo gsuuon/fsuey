@@ -18,7 +18,6 @@
   <ItemGroup>
     <Compile Include="Graph.fs" />
     <Compile Include="Provider.fs" />
-    <Compile Include="SanityCheck.fs" />
   </ItemGroup>
 
   <ItemGroup>
