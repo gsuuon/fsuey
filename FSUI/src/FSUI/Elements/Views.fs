@@ -16,7 +16,7 @@ let inline render<'data, 'props, 'visual, 'node, 'env>
 let text x = render (fun (env: #IText<_,_>) -> env.Text) x
 let gameObject x = render (fun (env: #IGameObject<_,_,_>) -> env.GameObject) x
 
-let div props children (env: #IContainer<_,_,_>) pos =
+let div props children (env: #IContainer<_,_>) pos =
     let nodes : 'node list =
         children |> List.mapi (fun idx fnode -> fnode env (Ordinal (pos, idx)))
 
