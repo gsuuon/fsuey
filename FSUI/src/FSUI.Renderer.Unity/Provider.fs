@@ -3,212 +3,121 @@
 open UnityEngine
 open UnityEngine.UIElements
 
-open FSUI.Renderer.Provider
-open FSUI.Renderer.Element
 open FSUI.Elements.Interfaces
 
-open FSUI.Renderer.Unity.Interfaces
-open FSUI.Renderer.Unity.Hierarchy
-
-open type UnityNode
-
-type UnityProp =
-    | Class of string
-
-type UnityProps = List<UnityProp>
-
-[<AbstractClass>]
-type ScreenSpace<'data, 'element when 'element :> VisualElement>(provider: Provider) =
-    inherit Element<'data, UnityProps, 'element, VisualElement>(
-        (fun (x: 'element) -> x :> VisualElement),
-        provider.Cache.Create UnityNode.remove
-    )
-
-type UnityBehavior =
-    | Start of System.Action
-    | Update of System.Action
-    | Child of child: GameObject
-
-type UnityGameObject =
-    | New of name: string
-    | Prefab of resourcePath: string
-    with
-    member this.Create () =
-        match this with
-        | New name -> GameObject(name)
-        | Prefab path ->
-            let prefab = Resources.Load<GameObject>(path)
-            GameObject.Instantiate<GameObject>(prefab, Vector3.zero, Quaternion.identity)
-
-[<AbstractClass>]
-type WorldSpace<'data>(provider: Provider) =
-    inherit Element<'data, UnityBehavior list, GameObject, GameObject>(
-        id,
-        provider.Cache.Create GameObject.Destroy
-    )
+open FSUI.Renderer.Cache
+open FSUI.Renderer.Provider
+open FSUI.Renderer.Element
+open FSUI.Renderer.Unity
 
 
-// TODO can I just use this somehow without inheriting visualelement?
-// can I do that without a DU wrapping gameobject + visualelement and switching for every element?
-// visual element isn't based on interfaces
-type GameObjectCollection = GameObjectCollection of children: GameObject list
-    with 
-    static member Destroy (GameObjectCollection children) =
-        children
-         |> List.iter (GameObject.Destroy)
+[<AutoOpen>]
+module Types =
+    type ScreenProp =
+        | Class of string
 
-// TODO move this somewhere
-type VisualGameObjectContainer(children: GameObject list) =
-    inherit VisualElement()
-
-    member this.RemoveFromHierarchy () =
-        children
-         |> List.iter (GameObject.Destroy)
-
-        base.RemoveFromHierarchy()
+    type ScreenProps = ScreenProp list
+    type ScreenElement = VisualElement
 
 
-// type UnityProvider() as this =
-//     inherit Provider() // TODO all this really does is create a swapper - lets just remove it for now
+    type WorldElement = GameObject
+    type WorldProps =
+        | Start of System.Action
+        | Update of System.Action
+        | Child of child: GameObject
 
-//     let swappers = Swappers()
+    type WorldElementType =
+        | Empty of name: string
+        | Prefab of resourcePath: string
+        with
+        member this.Create () =
+            match this with
+            | Empty name -> GameObject(name)
+            | Prefab path ->
+                let prefab = Resources.Load<GameObject>(path)
+                GameObject.Instantiate<GameObject>(prefab, Vector3.zero, Quaternion.identity)
 
-//     let ulog x = Debug.Log x
-//     let screen x = Element.create (fun (x: #VisualElement) -> x :> VisualElement) (swappers.Create UnityNode.remove) x
+    // TODO move this somewhere
+    type VisualGameObjectContainer(children: GameObject list) =
+        inherit VisualElement()
 
-//     let intScreenElement =
-//         screen
-//             { new IElement<_,_,_> with
-//                 member _.Create (x: int) (y: UnityProps) = Label (string x)
-//                 member _.Update  x y el x2 y2 = el
-//             }
+        member this.RemoveFromHierarchy () =
+            children |> List.iter (Graph.remove)
 
-//     let intScreenElement2 =
-//         screen {
-//             create = fun (x: int) (y: UnityProps) -> Label (string x)
-//             update = fun x y el x2 y2 -> el
-//         }
+            base.RemoveFromHierarchy()
 
-//     let intElement =
-//         { new Element<int, unit, Label, VisualElement>((fun x -> x :> VisualElement), base.Cache.Create (UnityNode.remove)) with
-//             member _.Create x () = Label <| string x
-//             member _.Update a b el d e =
-//                 el.text <- string d
-//                 el
-//         }
+type UnityProvider() =
+    let ulog x = Debug.Log x
+    let swappers = Swappers()
 
-//     // let text2 =
-//     //     UnityProvider.screenSpace this {
-//     //         create = fun data props ->
-//     //             let x = Button()
-//     //             x.text <- data
-//     //             x
-//     //         update = fun d' p' el d p ->
-//     //             el.text <- d; el
-//     //     }
+    let screen (x: IElement<'props, 'data, 'visual>) =
+        create (fun x -> x :> VisualElement) (swappers.Create Graph.remove) x
 
-//     // static member inline screenSpace this spec =
-//     //     { new ScreenSpace<_,_>(this) with
-//     //         member _.Create d p = spec.create d p
-//     //         member _.Update d' p' el d p = spec.update d' p' el d p
-//     //     }
+    let world (x: IElement<'props, 'data, WorldElement>) =
+        create id (swappers.Create Graph.remove) x
 
-//     interface IContainer<UnityProps, VisualElement, VisualElement> with
-//         member val Container =
-//             { new ScreenSpace<VisualElement list, VisualElement>(this) with
-//                 member _.Create data props =
-//                     addChildren (data, new VisualElement())
+    let polyString = // Example of multiple specializations of an interface (can't `member val`)
+        screen {
+            create = fun p d         -> Label d
+            update = fun p' d' e p d -> e.text <- d; e
+        }
 
-//                 /// cache swap wipes out stale children, we don't need to remove them or compare here
-//                 member _.Update data' props' el data props =
-//                     // FIXME once again, assuming adding the same element is a noop
-//                     // should just not do this
-//                     // unfortunately i have no way to diff the children except for a physical compare
-//                     // likely what the underlying Add already does?
-//                     addChildren (data, el)
-//             }
+    interface IText<ScreenProps, ScreenElement> with
+        member val Text =
+            screen {
+                create = fun p d         -> Label d
+                update = fun p' d' e p d -> e.text <- d; e
+            }
 
-//     // interface IText<UnityProps, Button, VisualElement> with
-//     //     member _.Text = text2
-            
+    interface IContainer<ScreenProps, ScreenElement> with
+        member val Container =
+            screen {
+                create = fun p d         -> Graph.addChildren (d, new VisualElement())
+                update = fun p' d' e p d -> Graph.addChildren (d, e)
+                    // Assumes adding same element is no-op
+                    // swapper's swap should take care of removing stale children
+            }
 
-//     interface IText<UnityProps, Label, VisualElement> with
-//         member val Text =
-//             { new ScreenSpace<_, _>(this) with
-//                     // TODO props
-//                 member _.Create data props =
-//                     ulog (sprintf "Text create: %s" data)
-//                     Label data
-//                 member _.Update data' props' el' data props =
-//                     el'.text <- data
-//                     el'
-//             }
+    interface IGameObject<WorldProps, WorldElementType, WorldElement> with
+        member val GameObject =
+            world {
+                create = fun p (d: WorldElementType) -> d.Create()
+                update = fun p' d' e p d             ->
+                    if d' <> d then
+                        GameObject.Destroy e
+                        d.Create()
+                    else
+                        e
+            }
+
+    // TODO Can I avoid rendering an empty VisualElement to contain game objects?
+    interface IJoinContain<ScreenProps, GameObject list, ScreenElement> with
+        member val JoinContain =
+            screen {
+                create = fun p d         -> VisualGameObjectContainer d
+                update = fun p' d' e p d -> e // TODO
+            }
     
-//     interface ISpotlight<UnityBehavior list> with // TODO
-//         member val Spotlight =
-//             { new WorldSpace<Vector3>(this) with
-//                 member _.Create data props =
-//                     GameObject()
-//                 member _.Update data' props' gO data props = gO
-//             }
+    interface IButton<ScreenProps, ScreenElement * (unit -> unit), ScreenElement> with
+        member val Button =
+            screen {
+                create = fun p ((child, action)) ->
+                    ScreenElement.addChild (Button (System.Action action)) child
+                update = fun p' ((_, action')) e p ((child, action)) ->
+                    if action'.GetType() <> action.GetType() then // TODO do this better
+                        e.remove_clicked action'
+                        e.add_clicked action
 
-//     interface IGameObject<UnityGameObject, UnityBehavior list, GameObject, GameObject> with
-//         member val GameObject =
-//             { new WorldSpace<UnityGameObject>(this) with
-//                 member _.Create uGameObject behaviors =
-//                     // TODO behaviors
-//                     // Child are in behaviors
-//                     // rename?
-//                     uGameObject.Create()
+                    ScreenElement.addChild e child
+            }
 
-//                 member _.Update uGameObject' behaviors' gameObject uGameObject behaviors =
-//                     // TODO reconsider this
-//                     if uGameObject' <> uGameObject then
-//                         GameObject.Destroy gameObject
-//                         uGameObject.Create()
-//                     else
-//                         gameObject
-//             }
+    // NOTE These are just examples of multiple specializations
+    interface IPoly<ScreenProps, obj, VisualElement> with
+        member val Poly =
+            screen {
+                create = fun p d         -> Label (string d)
+                update = fun p' d' e p d -> e.text <- (string d); e
+            }
 
-//     interface IJoinContain<GameObject list, UnityProps, VisualGameObjectContainer, VisualElement> with
-//         member val JoinContain =
-//             { new ScreenSpace<_, _>(this) with
-//                 member _.Create children props = VisualGameObjectContainer children
-//                 member _.Update a b c d e = c
-//                     // TODO update
-//             }
-
-//     interface IButton<VisualElement * (unit -> unit), UnityProps, Button, VisualElement> with
-//         member val Button =
-//             { new ScreenSpace<VisualElement * (unit -> unit), Button>(this) with
-//                 member _.Create ((child, action)) props =
-//                     ulog "Button create"
-//                     let b = Button(action)
-//                     b.Add child
-//                     b
-
-//                 member _.Update ((_, lastAction)) props el ((newChild, newAction)) e =
-//                     el.Add newChild
-//                     if lastAction.GetType() <> newAction.GetType() then // TODO do this better
-//                             // Could easily get the same closure with different values for example
-//                             // probably better just to always require an explicit key
-//                             // or always attach/re-attach
-//                             // could skip if we're physical equal
-//                         el.remove_clicked lastAction
-//                         el.add_clicked newAction
-//                     el
-//             }
-
-//     // TODO These are just examples of multiple specializations
-//     interface IElement<string, unit, Label, VisualElement> with
-//         member val Element =
-//             { new Element<string, unit, Label, VisualElement>((fun x -> x :> VisualElement), base.Cache.Create (UnityNode.remove)) with
-//                 member _.Create x () = Label x
-//                 member _.Update a b el data e =
-//                     el.text <- data
-//                     el
-//             }
-
-//     interface IElement<int, unit, Label, VisualElement> with
-//         member _.Element = intElement
-
+    interface IPoly<ScreenProps, string, VisualElement> with
+        member _.Poly = polyString
