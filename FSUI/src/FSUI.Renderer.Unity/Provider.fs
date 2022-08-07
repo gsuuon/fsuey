@@ -21,10 +21,11 @@ module Types =
 
 
     type WorldElement = GameObject
-    type WorldProps =
+    type WorldProp =
         | Start of System.Action
         | Update of System.Action
         | Child of child: GameObject
+    type WorldProps = WorldProp list
 
     type WorldElementType =
         | Empty of name: string
@@ -46,6 +47,7 @@ module Types =
 
             base.RemoveFromHierarchy()
 
+[<AutoSerializable(false)>] // Unity will try to serialize this and hit depth limits
 type UnityProvider() =
     let ulog x = Debug.Log x
     let swappers = Swappers()
@@ -61,6 +63,8 @@ type UnityProvider() =
             create = fun p d         -> Label d
             update = fun p' d' e p d -> e.text <- d; e
         }
+
+    member _.Cache = swappers
 
     interface IText<ScreenProps, ScreenElement> with
         member val Text =
