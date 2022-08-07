@@ -8,9 +8,9 @@ type Position =
     | Nominal of parent: Position * name: string * insertAfter: int
     | Root
 
-type IElement<'data, 'props, 'visual> =
-    abstract member Create: 'data -> 'props -> 'visual
-    abstract member Update: 'data -> 'props -> 'visual -> 'data -> 'props -> 'visual
+type IElement<'props, 'data, 'visual> =
+    abstract Create: 'props -> 'data -> 'visual
+    abstract Update: 'props -> 'data -> 'visual -> 'props -> 'data -> 'visual
 
 type ElementRecord<'d, 'p, 'v> =
     { create : 'd -> 'p -> 'v
@@ -20,27 +20,29 @@ type ElementRecord<'d, 'p, 'v> =
         member this.Create a b = this.create a b
         member this.Update a b c d e = this.update a b c d e
 
-let create<'data, 'props, 'visual, 'node, 'element when 'element :> IElement<'data, 'props, 'visual>>
-    (wrap: 'visual -> 'node)
-    (cache: Swapper<Position, 'data, 'props, 'visual>)
+type RendersElement<'props, 'data, 'node> = 'props -> 'data -> Position -> 'node
+
+let create<'props, 'data, 'visual, 'node, 'element when 'element :> IElement<'props, 'data, 'visual> >
+    (asNode: 'visual -> 'node)
+    (cache: Swapper<Position, 'props, 'data, 'visual>)
     (element: 'element)
-        : 'data -> 'props -> Position -> 'node
+        : RendersElement<'props, 'data, 'node>
     =
-    fun (data: 'data) (props: 'props) (pos: Position) ->
-        let (exists, (data', props', visual')) = cache.Stale.Remove pos // match .. with syntax doesn't work to get the correct overload
+    fun (props: 'props) (data: 'data) (pos: Position) ->
+        let (exists, (props', data', visual')) = cache.Stale.Remove pos // match .. with syntax doesn't get the correct overload
         
         let visual =
             if exists then
-                element.Update data' props' visual' data props
+                element.Update props' data' visual' props data
             else
-                element.Create data props
+                element.Create props data
 
         visual
          |> fun el ->
                 try
-                    cache.Fresh.Add (pos, (data, props, el) )
+                    cache.Fresh.Add (pos, (props, data, el) )
                 with
-                | :? System.ArgumentException -> // TODO Do we care about this?
+                | :? System.ArgumentException -> // TODO Is an element existing in Fresh at this position an error?
                     System.Console.Error.WriteLine ("Fresh cache already contained an element at " + pos.ToString())
                 el
-         |> wrap
+         |> asNode
