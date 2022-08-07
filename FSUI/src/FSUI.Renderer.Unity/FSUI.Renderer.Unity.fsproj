@@ -17,8 +17,9 @@
 
   <ItemGroup>
     <Compile Include="Hierarchy.fs" />
-    <Compile Include="Interfaces.fs" />
-    <Compile Include="Provider.fs" />
+    <!-- <Compile Include="Interfaces.fs" /> -->
+    <!-- <Compile Include="Provider.fs" /> -->
+    <Compile Include="SanityCheck.fs" />
   </ItemGroup>
 
   <ItemGroup>

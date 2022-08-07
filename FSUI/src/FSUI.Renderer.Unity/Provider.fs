@@ -68,243 +68,147 @@ type VisualGameObjectContainer(children: GameObject list) =
         base.RemoveFromHierarchy()
 
 
-module Element =
-    open FSUI.Renderer.Cache
+// type UnityProvider() as this =
+//     inherit Provider() // TODO all this really does is create a swapper - lets just remove it for now
 
+//     let swappers = Swappers()
 
-    type IElement<'data, 'props, 'visual> =
-        abstract member Create: 'data -> 'props -> 'visual
-        abstract member Update: 'data -> 'props -> 'visual -> 'data -> 'props -> 'visual
+//     let ulog x = Debug.Log x
+//     let screen x = Element.create (fun (x: #VisualElement) -> x :> VisualElement) (swappers.Create UnityNode.remove) x
 
-    type ElementRecord<'d, 'p, 'v> =
-        {
-            create : 'd -> 'p -> 'v
-            update : 'd -> 'p -> 'v -> 'd -> 'p -> 'v
-        }
-        interface IElement<'d, 'p, 'v> with
-            member this.Create a b = this.create a b
-            member this.Update a b c d e = this.update a b c d e
+//     let intScreenElement =
+//         screen
+//             { new IElement<_,_,_> with
+//                 member _.Create (x: int) (y: UnityProps) = Label (string x)
+//                 member _.Update  x y el x2 y2 = el
+//             }
 
-    let create (wrap: 'visual -> 'node) (cache: Swapper<_,_,_,_>) (element: #IElement<_,_,_>) =
-        fun (data: 'data) (props: 'props) (pos: Position) ->
-            let (exists, stale) = cache.Stale.Remove pos
-                // for some reason normal match with syntax doesn't work here
-            
-            match exists, stale with
-            | true, (cachedData, cachedProps, cachedVisual) ->
-                element.Update cachedData cachedProps cachedVisual data props
-            | _ ->
-                element.Create data props
-            |> fun el -> cache.Fresh.Add(pos, (data, props, el)); el
-            |> wrap
+//     let intScreenElement2 =
+//         screen {
+//             create = fun (x: int) (y: UnityProps) -> Label (string x)
+//             update = fun x y el x2 y2 -> el
+//         }
 
-    type RenderElement<'data, 'props, 'node> = 'data -> 'props -> Position -> 'node
+//     let intElement =
+//         { new Element<int, unit, Label, VisualElement>((fun x -> x :> VisualElement), base.Cache.Create (UnityNode.remove)) with
+//             member _.Create x () = Label <| string x
+//             member _.Update a b el d e =
+//                 el.text <- string d
+//                 el
+//         }
 
-    module Interfaces =
-        type IText<'props, 'visual, 'node> =
-            abstract Text : RenderElement<string, 'props, 'node>
+//     // let text2 =
+//     //     UnityProvider.screenSpace this {
+//     //         create = fun data props ->
+//     //             let x = Button()
+//     //             x.text <- data
+//     //             x
+//     //         update = fun d' p' el d p ->
+//     //             el.text <- d; el
+//     //     }
 
-        type IContainer<'props, 'node> =
-            abstract Container : RenderElement<List<'node>, 'props, 'node>
+//     // static member inline screenSpace this spec =
+//     //     { new ScreenSpace<_,_>(this) with
+//     //         member _.Create d p = spec.create d p
+//     //         member _.Update d' p' el d p = spec.update d' p' el d p
+//     //     }
 
-    module SanityCheck =
-        open Interfaces
+//     interface IContainer<UnityProps, VisualElement, VisualElement> with
+//         member val Container =
+//             { new ScreenSpace<VisualElement list, VisualElement>(this) with
+//                 member _.Create data props =
+//                     addChildren (data, new VisualElement())
 
-        module Views =
-            let text props data =
-                fun (env: #IText<_,_,_>) pos ->
-                    env.Text data props pos
+//                 /// cache swap wipes out stale children, we don't need to remove them or compare here
+//                 member _.Update data' props' el data props =
+//                     // FIXME once again, assuming adding the same element is a noop
+//                     // should just not do this
+//                     // unfortunately i have no way to diff the children except for a physical compare
+//                     // likely what the underlying Add already does?
+//                     addChildren (data, el)
+//             }
 
-            let div props children =
-                fun (env: #IContainer<'props, 'nodes>) pos ->
-                    let childNodes : List<'nodes> =
-                        children
-                         |> List.mapi
-                            ( fun idx render -> render env (Ordinal (pos, idx)) )
-
-                    env.Container childNodes props pos
-
-        module Layout =
-            open Views
-
-            let layout () =
-                div [] [
-                    text [] "hey"
-                ]
-
-        type Provider () =
-            let swappers = Swappers()
-            let screen x = create (fun (x: #VisualElement) -> x :> VisualElement) (swappers.Create UnityNode.remove) x
-
-            interface IText<UnityProps, Label, VisualElement> with
-                member val Text =
-                    screen {
-                        create = fun d p -> Label d
-                        update = fun d' p' el d p -> el.text <- d; el
-                    }
-
-            interface IContainer<UnityProps, VisualElement> with
-                member val Container =
-                    screen {
-                        create = fun d p ->
-                            let el = VisualElement()
-                            for child in d do
-                                el.Add child
-                            el
-                        update = fun d' p' el d p -> el // so on
-                    }
-
-        module App =
-            open FSUI.Renderer.Element
-
-            let env = Provider()
-            let view () =
-                (Layout.layout ()) env Root
-
-open FSUI.Renderer.Cache
-open Element
-
-type UnityProvider() as this =
-    inherit Provider() // TODO all this really does is create a swapper - lets just remove it for now
-
-    let swappers = Swappers()
-
-    let ulog x = Debug.Log x
-    let screen x = Element.create (fun (x: #VisualElement) -> x :> VisualElement) (swappers.Create UnityNode.remove) x
-
-    let intScreenElement =
-        screen
-            { new IElement<_,_,_> with
-                member _.Create (x: int) (y: UnityProps) = Label (string x)
-                member _.Update  x y el x2 y2 = el
-            }
-
-    let intScreenElement2 =
-        screen {
-            create = fun (x: int) (y: UnityProps) -> Label (string x)
-            update = fun x y el x2 y2 -> el
-        }
-
-    let intElement =
-        { new Element<int, unit, Label, VisualElement>((fun x -> x :> VisualElement), base.Cache.Create (UnityNode.remove)) with
-            member _.Create x () = Label <| string x
-            member _.Update a b el d e =
-                el.text <- string d
-                el
-        }
-
-    // let text2 =
-    //     UnityProvider.screenSpace this {
-    //         create = fun data props ->
-    //             let x = Button()
-    //             x.text <- data
-    //             x
-    //         update = fun d' p' el d p ->
-    //             el.text <- d; el
-    //     }
-
-    // static member inline screenSpace this spec =
-    //     { new ScreenSpace<_,_>(this) with
-    //         member _.Create d p = spec.create d p
-    //         member _.Update d' p' el d p = spec.update d' p' el d p
-    //     }
-
-    interface IContainer<UnityProps, VisualElement, VisualElement> with
-        member val Container =
-            { new ScreenSpace<VisualElement list, VisualElement>(this) with
-                member _.Create data props =
-                    addChildren (data, new VisualElement())
-
-                /// cache swap wipes out stale children, we don't need to remove them or compare here
-                member _.Update data' props' el data props =
-                    // FIXME once again, assuming adding the same element is a noop
-                    // should just not do this
-                    // unfortunately i have no way to diff the children except for a physical compare
-                    // likely what the underlying Add already does?
-                    addChildren (data, el)
-            }
-
-    // interface IText<UnityProps, Button, VisualElement> with
-    //     member _.Text = text2
+//     // interface IText<UnityProps, Button, VisualElement> with
+//     //     member _.Text = text2
             
 
-    interface IText<UnityProps, Label, VisualElement> with
-        member val Text =
-            { new ScreenSpace<_, _>(this) with
-                    // TODO props
-                member _.Create data props =
-                    ulog (sprintf "Text create: %s" data)
-                    Label data
-                member _.Update data' props' el' data props =
-                    el'.text <- data
-                    el'
-            }
+//     interface IText<UnityProps, Label, VisualElement> with
+//         member val Text =
+//             { new ScreenSpace<_, _>(this) with
+//                     // TODO props
+//                 member _.Create data props =
+//                     ulog (sprintf "Text create: %s" data)
+//                     Label data
+//                 member _.Update data' props' el' data props =
+//                     el'.text <- data
+//                     el'
+//             }
     
-    interface ISpotlight<UnityBehavior list> with // TODO
-        member val Spotlight =
-            { new WorldSpace<Vector3>(this) with
-                member _.Create data props =
-                    GameObject()
-                member _.Update data' props' gO data props = gO
-            }
+//     interface ISpotlight<UnityBehavior list> with // TODO
+//         member val Spotlight =
+//             { new WorldSpace<Vector3>(this) with
+//                 member _.Create data props =
+//                     GameObject()
+//                 member _.Update data' props' gO data props = gO
+//             }
 
-    interface IGameObject<UnityGameObject, UnityBehavior list, GameObject, GameObject> with
-        member val GameObject =
-            { new WorldSpace<UnityGameObject>(this) with
-                member _.Create uGameObject behaviors =
-                    // TODO behaviors
-                    // Child are in behaviors
-                    // rename?
-                    uGameObject.Create()
+//     interface IGameObject<UnityGameObject, UnityBehavior list, GameObject, GameObject> with
+//         member val GameObject =
+//             { new WorldSpace<UnityGameObject>(this) with
+//                 member _.Create uGameObject behaviors =
+//                     // TODO behaviors
+//                     // Child are in behaviors
+//                     // rename?
+//                     uGameObject.Create()
 
-                member _.Update uGameObject' behaviors' gameObject uGameObject behaviors =
-                    // TODO reconsider this
-                    if uGameObject' <> uGameObject then
-                        GameObject.Destroy gameObject
-                        uGameObject.Create()
-                    else
-                        gameObject
-            }
+//                 member _.Update uGameObject' behaviors' gameObject uGameObject behaviors =
+//                     // TODO reconsider this
+//                     if uGameObject' <> uGameObject then
+//                         GameObject.Destroy gameObject
+//                         uGameObject.Create()
+//                     else
+//                         gameObject
+//             }
 
-    interface IJoinContain<GameObject list, UnityProps, VisualGameObjectContainer, VisualElement> with
-        member val JoinContain =
-            { new ScreenSpace<_, _>(this) with
-                member _.Create children props = VisualGameObjectContainer children
-                member _.Update a b c d e = c
-                    // TODO update
-            }
+//     interface IJoinContain<GameObject list, UnityProps, VisualGameObjectContainer, VisualElement> with
+//         member val JoinContain =
+//             { new ScreenSpace<_, _>(this) with
+//                 member _.Create children props = VisualGameObjectContainer children
+//                 member _.Update a b c d e = c
+//                     // TODO update
+//             }
 
-    interface IButton<VisualElement * (unit -> unit), UnityProps, Button, VisualElement> with
-        member val Button =
-            { new ScreenSpace<VisualElement * (unit -> unit), Button>(this) with
-                member _.Create ((child, action)) props =
-                    ulog "Button create"
-                    let b = Button(action)
-                    b.Add child
-                    b
+//     interface IButton<VisualElement * (unit -> unit), UnityProps, Button, VisualElement> with
+//         member val Button =
+//             { new ScreenSpace<VisualElement * (unit -> unit), Button>(this) with
+//                 member _.Create ((child, action)) props =
+//                     ulog "Button create"
+//                     let b = Button(action)
+//                     b.Add child
+//                     b
 
-                member _.Update ((_, lastAction)) props el ((newChild, newAction)) e =
-                    el.Add newChild
-                    if lastAction.GetType() <> newAction.GetType() then // TODO do this better
-                            // Could easily get the same closure with different values for example
-                            // probably better just to always require an explicit key
-                            // or always attach/re-attach
-                            // could skip if we're physical equal
-                        el.remove_clicked lastAction
-                        el.add_clicked newAction
-                    el
-            }
+//                 member _.Update ((_, lastAction)) props el ((newChild, newAction)) e =
+//                     el.Add newChild
+//                     if lastAction.GetType() <> newAction.GetType() then // TODO do this better
+//                             // Could easily get the same closure with different values for example
+//                             // probably better just to always require an explicit key
+//                             // or always attach/re-attach
+//                             // could skip if we're physical equal
+//                         el.remove_clicked lastAction
+//                         el.add_clicked newAction
+//                     el
+//             }
 
-    // TODO These are just examples of multiple specializations
-    interface IElement<string, unit, Label, VisualElement> with
-        member val Element =
-            { new Element<string, unit, Label, VisualElement>((fun x -> x :> VisualElement), base.Cache.Create (UnityNode.remove)) with
-                member _.Create x () = Label x
-                member _.Update a b el data e =
-                    el.text <- data
-                    el
-            }
+//     // TODO These are just examples of multiple specializations
+//     interface IElement<string, unit, Label, VisualElement> with
+//         member val Element =
+//             { new Element<string, unit, Label, VisualElement>((fun x -> x :> VisualElement), base.Cache.Create (UnityNode.remove)) with
+//                 member _.Create x () = Label x
+//                 member _.Update a b el data e =
+//                     el.text <- data
+//                     el
+//             }
 
-    interface IElement<int, unit, Label, VisualElement> with
-        member _.Element = intElement
+//     interface IElement<int, unit, Label, VisualElement> with
+//         member _.Element = intElement
 
