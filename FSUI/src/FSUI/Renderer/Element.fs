@@ -29,10 +29,12 @@ let create<'props, 'data, 'visual, 'node, 'element when 'element :> IElement<'pr
         : RendersElement<'props, 'data, 'node>
     =
     fun (props: 'props) (data: 'data) (pos: Position) ->
-        let (exists, (props', data', visual')) = cache.Stale.Remove pos // match .. with syntax doesn't get the correct overload
+        let (exists, last) = cache.Stale.Remove pos // match .. with syntax doesn't get the correct overload
         
         let visual =
             if exists then
+                let (props', data', visual') = last
+
                 element.Update props' data' visual' props data
             else
                 element.Create props data
