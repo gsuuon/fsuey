@@ -4,7 +4,7 @@ open UnityEngine
 open UnityEngine.UIElements
 
 module ScreenElement =
-    let addChild (parent: VisualElement) (child: VisualElement) =
+    let addChild (parent: #VisualElement) (child: #VisualElement) =
         parent.Add child
         parent
 
@@ -14,7 +14,7 @@ module WorldElement =
         parent
 
 type Graph =
-    static member addChildren(children: VisualElement list, parent: VisualElement) =
+    static member addChildren(children: #VisualElement list, parent: #VisualElement) =
         children |> List.fold ScreenElement.addChild parent
 
     static member addChildren(children: GameObject list, parent: GameObject) =
