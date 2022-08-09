@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="GameObject/Hooks.fs" />
     <Compile Include="Graph.fs" />
     <Compile Include="Provider.fs" />
   </ItemGroup>

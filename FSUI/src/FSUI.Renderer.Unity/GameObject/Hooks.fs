@@ -2,11 +2,6 @@ namespace FSUI.Renderer.Unity.GameObject
 
 open UnityEngine
 
-type GameObjectDetach = delegate of unit -> unit
-type GameObjectAttach = delegate of GameObject -> GameObjectDetach
-
-type ApplyGameObject = delegate of GameObject -> unit
-
 module Design =
     // plenty of performance improvements possible here
     open System
@@ -20,7 +15,7 @@ module Design =
         | Effect of (GameObject -> unit)
         | Attach of HookKey * (GameObject -> (unit -> unit))
 
-    module Hook =
+    module HookProps =
         open System.Collections.Generic
 
         let private addUnique (err: Lazy<string>) key item (dct: Dictionary<_,_>) =
@@ -69,6 +64,31 @@ module Design =
 
             nextPropsDetach
 
+    module Environment =
+        open FSUI.Renderer.Cache
+        open FSUI.Elements.Interfaces
+
+        type Provider() =
+            let swappers = Swappers()
+            let create name = GameObject name
+
+            interface IGameObject<Hook list, string, GameObject> with
+                member val GameObject =
+                    let cache = swappers.Create GameObject.Destroy
+
+                    fun props name pos ->
+                        let (exists, last) = cache.Stale.Remove pos
+                        if exists then
+                            let (props', data', visual') = last
+                            let detachProps = HookProps.update props' props visual'
+                            cache.Fresh.Add (pos, (detachProps, name, visual'))
+                            visual'
+                        else
+                            let visual = create name
+                            let detachProps = visual |> HookProps.create props
+                            cache.Fresh.Add (pos, (detachProps, name, visual))
+                            visual
+
     type behavior<'T>() =
         inherit MonoBehaviour()
 
@@ -77,6 +97,7 @@ module Design =
 
     type update() = 
         inherit behavior<Action>()
+        member this.Update () = this.Value.Invoke()
 
     let attachesFn<'T when 'T :> behavior<Action>> (fn: unit -> unit) (gObj: GameObject) =
         let x = gObj.AddComponent<'T>()
@@ -91,16 +112,23 @@ module Design =
         static member effect (fn)
             = Effect fn
 
-    open type Hooks
+    module Application =
+        open type Hooks
+        open FSUI.Elements.Views
 
-    let gameObject a b = ()
-    gameObject "foo"
-        [ on<update> (fun _ -> printfn "updated")
-          on<update> ("prints update", fun _ -> printfn "updated")
-          effect     (fun _ -> printfn "rendered")
-        ]
+        let view () =
+            gameObject "foo"
+                [ on<update> (fun _ -> printfn "updated")
+                  on<update> ("prints update", fun _ -> printfn "updated")
+                  effect     (fun _ -> printfn "rendered")
+                ]
 
 module Design2 =
+    type GameObjectDetach = delegate of unit -> unit
+    type GameObjectAttach = delegate of GameObject -> GameObjectDetach
+
+    type ApplyGameObject = delegate of GameObject -> unit
+
     module Components =
         type Behaviour<'T>() =
             inherit MonoBehaviour()
