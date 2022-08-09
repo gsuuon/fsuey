@@ -19,7 +19,6 @@ module Types =
     type ScreenProps = ScreenProp list
     type ScreenElement = VisualElement
 
-
     type WorldElement = GameObject
     type WorldProp =
         | Start of System.Action
@@ -86,7 +85,7 @@ type UnityProvider() =
         member val GameObject =
             WorldElement.Element.create GameObject swappers
 
-    member val Prefab =
+    member val Prefab : RendersElement<WorldElement.Hooks.Prop list, string, WorldElement> =
         WorldElement.Element.create
             (fun name -> Resources.Load<GameObject>name )
             swappers
@@ -103,13 +102,13 @@ type UnityProvider() =
         member val Button =
             screen {
                 create = fun p ((child, action)) ->
-                    ScreenElement.addChild (Button (System.Action action)) child
+                    ScreenNode.addChild (Button (System.Action action)) child
                 update = fun p' ((_, action')) e p ((child, action)) ->
                     if action'.GetType() <> action.GetType() then // TODO do this better
                         e.remove_clicked action'
                         e.add_clicked action
 
-                    ScreenElement.addChild e child
+                    ScreenNode.addChild e child
             }
 
     // NOTE These are just examples of multiple specializations
