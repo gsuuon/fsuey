@@ -18,6 +18,7 @@
   <ItemGroup>
     <Compile Include="WorldElement/Behaviors.fs" />
     <Compile Include="WorldElement/Hooks.fs" />
+    <Compile Include="WorldElement/Element.fs" />
     <Compile Include="Graph.fs" />
     <Compile Include="Provider.fs" />
   </ItemGroup>
