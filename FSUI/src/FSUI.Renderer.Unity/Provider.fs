@@ -82,9 +82,14 @@ type UnityProvider() =
                     // swapper's swap should take care of removing stale children
             }
 
-    interface IGameObject<GameObject.Hooks.Prop list, string, WorldElement> with
+    interface IGameObject<WorldElement.Hooks.Prop list, string, WorldElement> with
         member val GameObject =
-            GameObject.Element.create GameObject swappers
+            WorldElement.Element.create GameObject swappers
+
+    member val Prefab =
+        WorldElement.Element.create
+            (fun name -> Resources.Load<GameObject>name )
+            swappers
 
     // TODO Can I avoid rendering an empty VisualElement to contain game objects?
     interface IJoinContain<ScreenProps, GameObject list, ScreenElement> with
