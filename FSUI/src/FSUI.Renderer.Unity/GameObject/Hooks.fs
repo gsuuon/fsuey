@@ -2,17 +2,16 @@ module FSUI.Renderer.Unity.GameObject.Hooks
 // plenty of performance improvements possible here
 
 open System
+open System.Collections.Generic
 open UnityEngine
 open FSUI.Renderer.Unity.GameObject.Behaviors
-
-open System.Collections.Generic
 
 [<RequireQualifiedAccess>]
 type HookKey =
     | Desc of string * Type
     | FnTyp of Type * Type
       
-type Hook =
+type Prop =
     | Effect of (GameObject -> unit)
     | Attach of HookKey * (GameObject -> (unit -> unit))
 
@@ -20,7 +19,7 @@ let private addUnique (err: Lazy<string>) key item (dct: Dictionary<_,_>) =
     if not <| dct.TryAdd (key, item) then
         System.Console.Error.Write (err.Force())
 
-let create (props: Hook list) visual =
+let create (props: Prop list) visual =
     let propsDetach = Dictionary<_, _>()
 
     for hook in props do
@@ -35,7 +34,7 @@ let create (props: Hook list) visual =
 
     propsDetach
     
-let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: Hook list) visual =
+let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: Prop list) visual =
     let nextPropsDetach = Dictionary<_, _>()
 
     for hook in thisProps do
@@ -63,44 +62,19 @@ let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: Hook list)
     nextPropsDetach
 
 type Props =
-    static member private attachesFn<'T when 'T :> behavior<Action> > (fn: unit -> unit) =
+    static member private attachesFn<'T when 'T :> Behavior<Action> > (fn: unit -> unit) =
         fun (gObj: GameObject) ->
             let x = gObj.AddComponent<'T>()
             x.Value <- Action fn
 
             fun () -> GameObject.Destroy x
 
-    static member on<'T when 'T :> behavior<Action>> (desc, fn)
+    static member on<'T when 'T :> Behavior<Action>> (desc, fn)
         = Attach (HookKey.Desc (desc, typeof<'T>), Props.attachesFn<'T> fn)
-    static member on<'T when 'T :> behavior<Action>> (fn)
+    static member on<'T when 'T :> Behavior<Action>> (fn)
         = Attach (HookKey.FnTyp (typeof<'T>, fn.GetType()), Props.attachesFn<'T> fn)
     static member effect (fn)
         = Effect fn
-
-module Environment =
-    open FSUI.Renderer.Cache
-    open FSUI.Elements.Interfaces
-
-    type Provider() =
-        let swappers = Swappers()
-        let newGameObject name = GameObject name
-
-        interface IGameObject<Hook list, string, GameObject> with
-            member val GameObject =
-                let cache = swappers.Create GameObject.Destroy
-
-                fun props name pos ->
-                    let (exists, last) = cache.Stale.Remove pos
-                    if exists then
-                        let (props', data', visual') = last
-                        let detachProps = update props' props visual'
-                        cache.Fresh.Add (pos, (detachProps, name, visual'))
-                        visual'
-                    else
-                        let visual = newGameObject name
-                        let detachProps = visual |> create props
-                        cache.Fresh.Add (pos, (detachProps, name, visual))
-                        visual
 
 
 module Application =
@@ -109,7 +83,7 @@ module Application =
 
     let view () =
         gameObject "foo"
-            [ on<update> (fun _ -> printfn "updated")
-              on<update> ("prints update", fun _ -> printfn "updated")
+            [ on<Update> (fun _ -> printfn "updated")
+              on<Update> ("prints update", fun _ -> printfn "updated")
               effect     (fun _ -> printfn "rendered")
             ]
