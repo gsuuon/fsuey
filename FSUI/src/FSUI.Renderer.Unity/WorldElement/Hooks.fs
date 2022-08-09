@@ -1,10 +1,10 @@
-module FSUI.Renderer.Unity.GameObject.Hooks
+module FSUI.Renderer.Unity.WorldElement.Hooks
 // plenty of performance improvements possible here
 
 open System
 open System.Collections.Generic
 open UnityEngine
-open FSUI.Renderer.Unity.GameObject.Behaviors
+open FSUI.Renderer.Unity.WorldElement.Behaviors
 
 [<RequireQualifiedAccess>]
 type HookKey =
@@ -75,15 +75,3 @@ type Props =
         = Attach (HookKey.FnTyp (typeof<'T>, fn.GetType()), Props.attachesFn<'T> fn)
     static member effect (fn)
         = Effect fn
-
-
-module Application =
-    open type Props
-    open FSUI.Elements.Views
-
-    let view () =
-        gameObject "foo"
-            [ on<Update> (fun _ -> printfn "updated")
-              on<Update> ("prints update", fun _ -> printfn "updated")
-              effect     (fun _ -> printfn "rendered")
-            ]

@@ -16,8 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="GameObject/Behaviors.fs" />
-    <Compile Include="GameObject/Hooks.fs" />
+    <Compile Include="WorldElement/Behaviors.fs" />
+    <Compile Include="WorldElement/Hooks.fs" />
     <Compile Include="Graph.fs" />
     <Compile Include="Provider.fs" />
   </ItemGroup>

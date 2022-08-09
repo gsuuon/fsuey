@@ -1,4 +1,4 @@
-﻿namespace FSUI.Renderer.Unity
+namespace FSUI.Renderer.Unity
 
 open UnityEngine
 open UnityEngine.UIElements
@@ -9,8 +9,6 @@ open FSUI.Renderer.Cache
 open FSUI.Renderer.Provider
 open FSUI.Renderer.Element
 open FSUI.Renderer.Unity
-
-open FSUI.Renderer.Unity.GameObject
 
 
 [<AutoOpen>]
@@ -84,23 +82,9 @@ type UnityProvider() =
                     // swapper's swap should take care of removing stale children
             }
 
-    interface IGameObject<Hooks.Prop list, string, WorldElement> with
+    interface IGameObject<GameObject.Hooks.Prop list, string, WorldElement> with
         member val GameObject =
-            let newGameObject name = GameObject name
-            let cache = swappers.Create GameObject.Destroy
-
-            fun props name pos ->
-                let (exists, last) = cache.Stale.Remove pos
-                if exists then
-                    let (props', data', visual') = last
-                    let detachProps = Hooks.update props' props visual'
-                    cache.Fresh.Add (pos, (detachProps, name, visual'))
-                    visual'
-                else
-                    let visual = newGameObject name
-                    let detachProps = visual |> Hooks.create props
-                    cache.Fresh.Add (pos, (detachProps, name, visual))
-                    visual
+            GameObject.Element.create GameObject swappers
 
     // TODO Can I avoid rendering an empty VisualElement to contain game objects?
     interface IJoinContain<ScreenProps, GameObject list, ScreenElement> with

@@ -1,4 +1,4 @@
-module FSUI.Renderer.Unity.GameObject.Behaviors
+module FSUI.Renderer.Unity.WorldElement.Behaviors
 
 open System
 open UnityEngine
