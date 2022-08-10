@@ -63,7 +63,8 @@ type UnityProvider() =
             update = fun p' d' e p d -> e.text <- d; e
         }
 
-    member _.Cache = swappers
+    interface IProvider with
+        member _.Cache = swappers
 
     interface IText<ScreenProps, ScreenElement> with
         member val Text =

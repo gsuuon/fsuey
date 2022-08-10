@@ -12,7 +12,7 @@ let make
     (initialModel: 'model)
     (view: 'model -> ('msg -> unit) -> 'env -> Position -> 'node)
     (update: 'msg -> 'model -> 'model)
-    (env: 'env when 'env :> Provider)
+    (env: 'env when 'env :> IProvider)
     (pos: Position)
     =
     let mutable model = initialModel
