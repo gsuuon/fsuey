@@ -13,7 +13,7 @@
 
   <PropertyGroup>
     <UnityEditorVersion>2021.3.2f1</UnityEditorVersion>
-    <UnityLibraryDir>C:\Program Files\Unity\Hub\Editor\$(UnityEditorVersion)\Editor\Data\Managed\UnityEngine</UnityLibraryDir>
+    <UnityLibraryDir>C:\Program Files\Unity\Hub\Editor\$(UnityEditorVersion)\Editor\Data\Managed\UnityEngine\</UnityLibraryDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,15 +35,15 @@
   <ItemGroup>
     <Reference Include="UnityEngine">
       <Private>false</Private>
-      <HintPath>$(UnityLibraryDir)\UnityEngine.dll</HintPath>
+      <HintPath>$(UnityLibraryDir)UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <Private>false</Private>
-      <HintPath>$(UnityLibraryDir)\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(UnityLibraryDir)UnityEngine.CoreModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UIElementsModule">
       <Private>false</Private>
-      <HintPath>$(UnityLibraryDir)\UnityEngine.UIElementsModule.dll</HintPath>
+      <HintPath>$(UnityLibraryDir)UnityEngine.UIElementsModule.dll</HintPath>
     </Reference>
   </ItemGroup>
 
