@@ -4,11 +4,11 @@ open UnityEngine
 open UnityEngine.UIElements
 
 open FSUI.Elements.Views
-open FSUI.Renderer.Element // Position is here
+open FSUI.Renderer.Element // Position is here TODO move the most commonly used items to root namespaces (FSUI, FSUI.Unity)
 open FSUI.Renderer.Unity
+
 open FSUI.Renderer.Unity.Views
 open FSUI.Renderer.Unity.Flow
-
 open FSUI.Renderer.Unity.WorldElement.Behaviors
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 
@@ -45,8 +45,10 @@ module App =
                     itemButton ItemB
                 ]
 
+    type Renders<'env, 'node> = ('env -> Position -> 'node) -> unit
+
     // Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
-    let main (render: (UnityProvider -> Position -> VisualElement) -> unit) =
+    let main (render: Renders<UnityProvider, VisualElement>) =
         flow {
             render <| div [] [ text [] "foo" ]
             yield (WaitForSeconds 1.5f)
@@ -59,8 +61,8 @@ module App =
                         join [] [
                             prefab "Thingy"
                                 [ on<Update> ("rotates up", fun g -> g.transform.Rotate(1f, 0f, 0f))
-                                  on<Start> <| fun _ -> dlog "Thingy -- start"
-                                  effect <| fun _ -> dlog "Rendered Thingy"
+                                  on<Start>  <| fun _ -> dlog "Thingy -- start"
+                                  effect     <| fun _ -> dlog "Rendered Thingy"
                                 ]
 
                             gameObject 
@@ -86,8 +88,8 @@ module App =
                             ]
 
                         gameObject // This game object doesn't get re-created
-                            [ on<Start> (fun _ -> dlog "test obj 1 -- start") // okay, it actually does here because the function type has a different name
-                                                                              // it's on a different line - i was hoping fsc would compile these as the same
+                            [ on<Start> (fun _ -> dlog "test obj 1 -- start") // this actually gets reattached here because the function type has a different name
+                                                                              // since it's on a different line - i was hoping fsc would compile these as the same
                             ]
                             "test obj 1"
                     ]

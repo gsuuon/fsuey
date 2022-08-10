@@ -69,8 +69,10 @@ type Props =
 
             fun () -> GameObject.Destroy x
 
+    [<RequiresExplicitTypeArguments>]
     static member on<'T when 'T :> Behavior<ApplyGameObject>> (desc, fn)
         = Attach (HookKey.Desc (desc, typeof<'T>), Props.attachesFn<'T> fn)
+    [<RequiresExplicitTypeArguments>]
     static member on<'T when 'T :> Behavior<ApplyGameObject>> (fn)
         = Attach (HookKey.FnTyp (typeof<'T>, fn.GetType()), Props.attachesFn<'T> fn)
     static member effect (fn)
