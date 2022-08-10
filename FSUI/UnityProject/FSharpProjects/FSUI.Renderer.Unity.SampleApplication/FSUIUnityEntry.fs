@@ -4,22 +4,21 @@ open UnityEngine
 open UnityEngine.UIElements
 
 open FSUI.Elements.Views
-open FSUI.Renderer.Element
+open FSUI.Renderer.Element // Position is here
 open FSUI.Renderer.Unity
 open FSUI.Renderer.Unity.Views
 
 open FSUI.Renderer.Unity.WorldElement.Behaviors
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 
-open FSUI.Renderer.Unity.SampleApplication
-open FSUI.Renderer.Unity.SampleApplication.Eventually
-
-open type AppViews // just for poly
+open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 
 [<AutoOpen>]
 module Util =
+    open FSUI.Renderer.Unity.SampleApplication.Eventually
+
     type UnitySequence() =
-        inherit Eventually.Computation.EventuallyBuilder() 
+        inherit Computation.EventuallyBuilder() 
         member _.Run x = asEnumerator x
 
     let dlog x = Debug.Log x
@@ -37,36 +36,36 @@ module FUI =
     let inline swap provider =
         ( ^T : (member Cache : Swappers) (provider)).Swap()
 
-    let inline mount (document: UIDocument) provider view =
+    let inline mount (document: UIDocument) provider app =
         let render =
             let env = provider
             fun view ->
                 view env Root |> document.rootVisualElement.Add
                 swap provider
 
-        view render
-
-module ItemComponent =
-    type ItemChoice =
-        | ItemA
-        | ItemB
-
-    let selectItem render resolve =
-        let itemButton item =
-            button []
-                ( text [] (sprintf "Choose: %A" item)
-                , fun () ->
-                    dlog <| sprintf "Clicked item %A" item
-                    resolve item )
-
-        render
-         <| div [] [
-                text [] "Pick a thing:"
-                itemButton ItemA
-                itemButton ItemB
-            ]
+        app render
 
 module App =
+    module ItemComponent =
+        type ItemChoice =
+            | ItemA
+            | ItemB
+
+        let selectItem render resolve =
+            let itemButton item =
+                button []
+                    ( text [] (sprintf "Choose: %A" item)
+                    , fun () ->
+                        dlog <| sprintf "Clicked item %A" item
+                        resolve item )
+
+            render
+             <| div [] [
+                    text [] "Pick a thing:"
+                    itemButton ItemA
+                    itemButton ItemB
+                ]
+
     // Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
     let main (render: (UnityProvider -> Position -> VisualElement) -> unit) =
         unitySequence {
