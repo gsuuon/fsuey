@@ -62,16 +62,16 @@ let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: Prop list)
     nextPropsDetach
 
 type Props =
-    static member private attachesFn<'T when 'T :> Behavior<Action> > (fn: unit -> unit) =
+    static member private attachesFn<'T when 'T :> Behavior<ApplyGameObject> > (fn: GameObject -> unit) =
         fun (gObj: GameObject) ->
             let x = gObj.AddComponent<'T>()
-            x.Value <- Action fn
+            x.Value <- ApplyGameObject fn
 
             fun () -> GameObject.Destroy x
 
-    static member on<'T when 'T :> Behavior<Action>> (desc, fn)
+    static member on<'T when 'T :> Behavior<ApplyGameObject>> (desc, fn)
         = Attach (HookKey.Desc (desc, typeof<'T>), Props.attachesFn<'T> fn)
-    static member on<'T when 'T :> Behavior<Action>> (fn)
+    static member on<'T when 'T :> Behavior<ApplyGameObject>> (fn)
         = Attach (HookKey.FnTyp (typeof<'T>, fn.GetType()), Props.attachesFn<'T> fn)
     static member effect (fn)
         = Effect fn

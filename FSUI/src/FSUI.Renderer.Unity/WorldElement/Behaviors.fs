@@ -3,6 +3,8 @@ module FSUI.Renderer.Unity.WorldElement.Behaviors
 open System
 open UnityEngine
 
+type ApplyGameObject = delegate of GameObject -> unit
+
 [<AbstractClass>]
 type Behavior<'T>() =
     inherit MonoBehaviour()
@@ -11,10 +13,10 @@ type Behavior<'T>() =
     val mutable Value : 'T
 
 type Update() = 
-    inherit Behavior<Action>()
-    member this.Update () = this.Value.Invoke()
+    inherit Behavior<ApplyGameObject>()
+    member this.Update () = this.Value.Invoke this.gameObject
 
 type Start() = 
-    inherit Behavior<Action>()
-    member this.Start () = this.Value.Invoke()
+    inherit Behavior<ApplyGameObject>()
+    member this.Start () = this.Value.Invoke this.gameObject
 

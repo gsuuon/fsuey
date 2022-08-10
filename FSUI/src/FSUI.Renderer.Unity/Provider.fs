@@ -87,7 +87,7 @@ type UnityProvider() =
 
     member val Prefab : RendersElement<WorldElement.Hooks.Prop list, string, WorldElement> =
         WorldElement.Element.create
-            (fun name -> Resources.Load<GameObject>name )
+            (Resources.Load<GameObject> >> GameObject.Instantiate<GameObject>)
             swappers
 
     // TODO Can I avoid rendering an empty VisualElement to contain game objects?
