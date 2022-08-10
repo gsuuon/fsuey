@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Embedded debug info breaks il2cpp build, we need to rebuild FSharp.Core with <DebugType>none</DebugType> -->
     <PackageReference Update="FSharp.Core" ExcludeAssets="all" />
     <Reference Include="./FSharp.Core.dll" />
   </ItemGroup>
