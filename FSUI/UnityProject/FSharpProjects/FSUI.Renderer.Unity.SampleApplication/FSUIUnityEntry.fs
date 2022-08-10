@@ -7,6 +7,7 @@ open FSUI.Elements.Views
 open FSUI.Renderer.Element // Position is here
 open FSUI.Renderer.Unity
 open FSUI.Renderer.Unity.Views
+open FSUI.Renderer.Unity.Flow
 
 open FSUI.Renderer.Unity.WorldElement.Behaviors
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props

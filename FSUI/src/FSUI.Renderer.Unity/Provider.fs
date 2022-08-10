@@ -10,6 +10,15 @@ open FSUI.Renderer.Provider
 open FSUI.Renderer.Element
 open FSUI.Renderer.Unity
 
+module Flow =
+    open FSUI.Flow
+
+    type UnityFlow() =
+        inherit FlowBuilder() 
+        member _.Run x = Flow.asEnumerator x
+
+    let flow = UnityFlow()
+
 
 [<AutoOpen>]
 module Types =
