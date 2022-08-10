@@ -15,11 +15,11 @@ open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 
 [<AutoOpen>]
 module Util =
-    open FSUI.Renderer.Unity.SampleApplication.Eventually
+    open FSUI.Renderer.Unity.SampleApplication.Flow
 
     type UnitySequence() =
-        inherit Computation.EventuallyBuilder() 
-        member _.Run x = asEnumerator x
+        inherit FlowBuilder() 
+        member _.Run x = Flow.asEnumerator x
 
     let dlog x = Debug.Log x
     let unitySequence = UnitySequence()
