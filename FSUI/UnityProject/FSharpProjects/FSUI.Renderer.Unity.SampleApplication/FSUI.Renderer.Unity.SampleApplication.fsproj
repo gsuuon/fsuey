@@ -27,7 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Flow.fs" />
     <Compile Include="AppViews.fs" />
     <Compile Include="FSUIUnityEntry.fs" />
   </ItemGroup>

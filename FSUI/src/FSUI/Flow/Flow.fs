@@ -1,12 +1,12 @@
-module FSUI.Renderer.Unity.SampleApplication.Flow
+module FSUI.Flow
 
 open System.Collections
 open System.Collections.Generic
 
 /// Represents potentially infinite work in progress with potential intermediate values and a final value
-type FlowState<'T, 'W> =
+type Flow<'T, 'W> =
     | Done of 'T
-    | Wait of Option<'W> * (Option<unit -> FlowState<'T, 'W>>)
+    | Wait of Option<'W> * (Option<unit -> Flow<'T, 'W>>)
     interface IEnumerable<Option<'T>> with
         member this.GetEnumerator () =
             let mutable copy = Wait (None, Some (fun () -> this) ) // IEnumerator.Current needs to start _before_ the first element
@@ -68,7 +68,7 @@ type FlowBuilder() =
         else
             Wait (None, None)
 
-    member this.Combine (flow1: FlowState<'T, 'W>, flow2: FlowState<'T, 'W>) =
+    member this.Combine (flow1: Flow<'T, 'W>, flow2: Flow<'T, 'W>) =
         match flow1, flow2 with
         | Wait (Some x, None), Wait(None, Some work)
                                  -> Wait (Some x, Some work) // yield
@@ -77,14 +77,14 @@ type FlowBuilder() =
         | Wait (x, None), _      -> Wait (x, Some (fun () -> flow2) )
         | Wait (x, Some work), _ -> Wait (x, Some (fun () -> this.Combine(work(), flow2) ) )
 
-    member this.Bind (flow: FlowState<'T,_>, next: 'T -> FlowState<'T2,_>) =
+    member this.Bind (flow: Flow<'T,_>, next: 'T -> Flow<'T2,_>) =
         match flow with
         | Done x              -> next x
         | Wait (w, Some work) -> Wait (w, Some (fun () -> this.Bind(work(), next) ) )
         | Wait (w, None)      -> Wait (w, None) // Prevent constraining 'T2 to 'T
 
     /// Binds to a unit function that takes a resolve function, eventually continuing with the value resolve is called witkh
-    member this.Bind (continuation: ('T -> unit) -> unit, next: 'T -> FlowState<'T2, 'W>) =
+    member this.Bind (continuation: ('T -> unit) -> unit, next: 'T -> Flow<'T2, 'W>) =
         let mutable value = None
         let resolve x     = value <- Some x
 
@@ -104,3 +104,5 @@ module Flow =
         function
         | Wait (_, Some work) -> work()
         | flow          -> flow
+
+let flow = FlowBuilder()

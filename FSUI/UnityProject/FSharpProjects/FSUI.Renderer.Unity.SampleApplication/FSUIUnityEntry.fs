@@ -15,7 +15,7 @@ open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 
 [<AutoOpen>]
 module Util =
-    open FSUI.Renderer.Unity.SampleApplication.Flow
+    open FSUI.Flow
 
     type UnitySequence() =
         inherit FlowBuilder() 
