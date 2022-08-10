@@ -1,14 +1,14 @@
-#load "Eventually.fs"
+#load "Flow.fs"
 
-open FSUI.Renderer.Unity.SampleApplication
-
-open Eventually
+open FSUI.Renderer.Unity.SampleApplication.Flow
 
 type MyWaitType = MyWaitType of string
 type MyReturnType = MyReturnType of string
 
-let foo : Eventually<unit, MyWaitType> = 
-    eventually {
+let flow = FlowBuilder()
+
+let foo : FlowState<unit, MyWaitType> = 
+    flow {
         let mutable x = 0
         printfn "\tfoo: start"
         yield (MyWaitType "wait one")
@@ -24,11 +24,11 @@ let foo : Eventually<unit, MyWaitType> =
         printfn "\tfoo: end"
     }
 
-let enumerate name (eventual: Eventually<_,_>) =
+let enumerate name (flow: FlowState<_,_>) =
     let mutable steps = 0
-    printfn "\n\n----- Enumerating %s\n%A\n-----" name eventual
+    printfn "\n\n----- Enumerating %s\n%A\n-----" name flow
 
-    for x in eventual do
+    for x in flow do
         printfn "%i> %A" steps x
         steps <- steps + 1
 
