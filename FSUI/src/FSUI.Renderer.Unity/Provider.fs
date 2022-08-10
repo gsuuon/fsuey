@@ -19,6 +19,13 @@ module Flow =
 
     let flow = UnityFlow()
 
+module Renderer =
+    let mount<'T when 'T : (new : unit -> 'T) and 'T :> IProvider > (document: UIDocument) =
+        let env = new 'T()
+
+        fun view ->
+            view env Root |> document.rootVisualElement.Add
+            env.Cache.Swap()
 
 [<AutoOpen>]
 module Types =

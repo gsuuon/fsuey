@@ -16,35 +16,13 @@ open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 
 [<AutoOpen>]
 module Util =
-    open FSUI.Flow
-
-    type UnitySequence() =
-        inherit FlowBuilder() 
-        member _.Run x = Flow.asEnumerator x
-
     let dlog x = Debug.Log x
-    let unitySequence = UnitySequence()
 
     let printToUnity () = // TODO this seems to split messages up into multiple lines
         System.Console.SetOut
             { new System.IO.StringWriter() with
                 member _.Write (msg: string) = Debug.Log msg
             }
-
-module FUI =
-    open FSUI.Renderer.Cache
-
-    let inline swap provider =
-        ( ^T : (member Cache : Swappers) (provider)).Swap()
-
-    let inline mount (document: UIDocument) provider app =
-        let render =
-            let env = provider
-            fun view ->
-                view env Root |> document.rootVisualElement.Add
-                swap provider
-
-        app render
 
 module App =
     module ItemComponent =
@@ -69,7 +47,7 @@ module App =
 
     // Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
     let main (render: (UnityProvider -> Position -> VisualElement) -> unit) =
-        unitySequence {
+        flow {
             render <| div [] [ text [] "foo" ]
             yield (WaitForSeconds 1.5f)
 
@@ -131,4 +109,6 @@ type FSUIUnityEntry() =
     member this.Start () =
         printToUnity()
 
-        FUI.mount this.document (UnityProvider()) App.main
+        let render = Renderer.mount<UnityProvider> this.document
+
+        App.main render
