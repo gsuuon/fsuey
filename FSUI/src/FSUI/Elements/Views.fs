@@ -27,6 +27,7 @@ let button props (child: 'env -> Position -> 'node, action: unit -> unit) (env: 
 
     env.Button props (childNode, action) pos
 
+// TODO this is the same as div
 let join props children (env: #IJoinContain<_,_,_>) pos =
     let nodes : 'node list =
         children |> List.mapi (fun idx fnode -> fnode env (Ordinal (pos, idx)))

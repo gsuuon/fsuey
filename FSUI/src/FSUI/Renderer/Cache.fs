@@ -31,13 +31,11 @@ type Swapper<'K, 'data, 'props, 'visual>(
             fresh <- stale
             stale <- fresh'
 
-open System.Collections.Generic
-
 type Swappers() =
     let mutable collection = []
 
     member _.Create (remove) =
-        let swap = Swapper((fun () -> Dictionary()), remove)
+        let swap = Swapper(Dictionary, remove)
         collection <- (swap :> ISwapper) :: collection
         swap
 
