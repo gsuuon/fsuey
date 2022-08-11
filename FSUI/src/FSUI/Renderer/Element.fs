@@ -3,39 +3,57 @@ module FSUI.Renderer.Element
 open FSUI.Renderer.Cache
 open FSUI.Renderer.Provider
 
+open FSUI.Difference
+
 type Position =
     | Ordinal of parent: Position * int
     | Nominal of parent: Position * name: string * insertAfter: int
     | Root
 
-type IElement<'props, 'data, 'visual> =
-    abstract Create: 'props -> 'data -> 'visual
-    abstract Update: 'props -> 'data -> 'visual -> 'props -> 'data -> 'visual
+type IElement<'prop, 'data, 'visual> =
+    abstract Create: seq<'prop> -> 'data -> 'visual
+    abstract Change: Changes<'prop> -> 'visual
+    abstract Update: 'data -> 'data -> 'visual
 
-type ElementRecord<'d, 'p, 'v> =
-    { create : 'd -> 'p -> 'v
-      update : 'd -> 'p -> 'v -> 'd -> 'p -> 'v
+type ElementRecord<'p, 'd, 'v> =
+    { create : seq<'p> -> 'd -> 'v
+      change : Changes<'p> -> 'v
+      update : 'd -> 'd -> 'v
     }
-    interface IElement<'d, 'p, 'v> with
-        member this.Create a b = this.create a b
-        member this.Update a b c d e = this.update a b c d e
+    interface IElement<'p, 'd, 'v> with
+        member this.Create props data = this.create props data
+        member this.Change changes = this.change changes
+        member this.Update lastData thisData = this.update lastData thisData
 
-type RendersElement<'props, 'data, 'node> = 'props -> 'data -> Position -> 'node
+type RendersElement<'prop, 'data, 'node> = seq<'prop> -> 'data -> Position -> 'node
 
-let create<'props, 'data, 'visual, 'node, 'element when 'element :> IElement<'props, 'data, 'visual> >
+let create<'prop, 'data, 'visual, 'node, 'element
+                when 'element :> IElement<'prop, 'data, 'visual>
+                 and 'prop : equality
+                 and 'data : equality>
     (asNode: 'visual -> 'node)
-    (cache: Swapper<Position, 'props, 'data, 'visual>)
+    (cache: Swapper<Position, seq<'prop>, 'data, 'visual>)
     (element: 'element)
-        : RendersElement<'props, 'data, 'node>
+        : RendersElement<'prop, 'data, 'node>
     =
-    fun (props: 'props) (data: 'data) (pos: Position) ->
+    fun (props: seq<'prop>) (data: 'data) (pos: Position) ->
         let (exists, last) = cache.Stale.Remove pos // match .. with syntax doesn't get the correct overload
         
         let visual =
             if exists then
                 let (props', data', visual') = last
 
-                element.Update props' data' visual' props data
+                let visual' =
+                    if data' <> data then
+                        element.Update data' data
+                    else
+                        visual'
+
+                match Difference.compute props' props with
+                | Some changes ->
+                    element.Change changes visual'
+                | None ->
+                    visual'
             else
                 element.Create props data
 
