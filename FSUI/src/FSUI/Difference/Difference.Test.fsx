@@ -5,14 +5,18 @@ open TestReferences
 open FSUI.Difference
 open type Compute
 
-let (=^) (resultsA: Difference.Changes<'T>) (resultsB: Difference.Changes<'T>) =
-    let createdA = Set resultsA.created
-    let createdB = Set resultsB.created
+let (=^) (resultsA: Option<Difference.Changes<'T>>) (resultsB: Option<Difference.Changes<'T>>) =
+    match resultsA, resultsB with
+    | None, None -> true
+    | Some a, Some b ->
+        let createdA = Set a.created
+        let createdB = Set b.created
 
-    let removedA = Set resultsA.removed
-    let removedB = Set resultsB.removed
+        let removedA = Set a.removed
+        let removedB = Set b.removed
 
-    (createdA = createdB) && (removedA = removedB)
+        (createdA = createdB) && (removedA = removedB)
+    | _ -> false
 
 module Ints =
     that "removed and created are computed"
@@ -21,8 +25,9 @@ module Ints =
             , [ 0; 1; 3 ]
             )
             =^
-            { removed = [| 2 |]
-              created = [| 0; 3 |]
+            Some {
+                removed = [| 2 |]
+                created = [| 0; 3 |]
             }
         @>
 
@@ -31,9 +36,7 @@ module Ints =
             ( [ 0; 1; 2; 3]
             , [ 3; 2; 1; 0] )
             =^
-            { removed = [| |]
-              created = [| |]
-            }
+            None
         @>
 
     that "fewer last ok"
@@ -42,8 +45,9 @@ module Ints =
             , [ 0; 1; 2; 3 ]
             )
             =^
-            { removed = [||]
-              created = [| 3 |]
+            Some {
+                removed = [||]
+                created = [| 3 |]
             }
         @>
 
@@ -53,8 +57,9 @@ module Ints =
             , [ 0; 1; 2 ]
             )
             =^
-            { removed = [| 3 |]
-              created = [| |]
+            Some {
+                removed = [| 3 |]
+                created = [| |]
             }
         @>
 
@@ -64,8 +69,9 @@ module Ints =
             , [| 0; 1; 3 |]
             )
             =^
-            { removed = [| 2 |]
-              created = [| 0; 3 |]
+            Some {
+                removed = [| 2 |]
+                created = [| 0; 3 |]
             }
         @>
 
@@ -87,7 +93,8 @@ module Cases =
                 Foo 2
                 Foo 3
               ]
-            ) =^ {
+            ) =^
+            Some {
                 created = [| Foo 2; Bar "star"; Foo 3 |]
                 removed = [| Foo 0; Bar "hello" |]
             }

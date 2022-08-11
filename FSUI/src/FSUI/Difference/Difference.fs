@@ -13,7 +13,12 @@ module Difference =
           created : array<'T>
           // content : array<'T>
         }
+        static member Empty =
+            { removed = Array.empty
+              created = Array.empty
+            }
 
+    let inline empty< ^a when 'a : (static member Empty : 'a)> () = (^a : (static member Empty : 'a) ())
     let inline length x = (^a : (member Length : int) x)
     let inline compute< ^a, 'b
                             when 'a : (member Length : int)
@@ -21,7 +26,7 @@ module Difference =
                              and 'b : equality >
         (last: 'a)
         (next: 'a)
-            : Changes<'b>
+            : Option<Changes<'b> >
         =
         let count = length next + length last
         let tags = Dictionary count
@@ -45,31 +50,34 @@ module Difference =
                 tags[item] <- Tag.Next
                 createdCount <- createdCount + 1
 
-        let mutable removed = Array.zeroCreate removedCount
-        let mutable created = Array.zeroCreate createdCount
-        // let mutable content = Array.zeroCreate contentCount
+        if removedCount = 0 && createdCount = 0 then
+            None
+        else
+            let mutable removed = Array.zeroCreate removedCount
+            let mutable created = Array.zeroCreate createdCount
+            // let mutable content = Array.zeroCreate contentCount
 
-        // Repurpose counts as indices
-        removedCount <- 0
-        createdCount <- 0
-        // contentCount <- 0
+            // Repurpose counts as indices
+            removedCount <- 0
+            createdCount <- 0
+            // contentCount <- 0
 
-        for item in tags do
-            if item.Value = Tag.Last then
-                removed[removedCount] <- item.Key
-                removedCount <- removedCount + 1
-            elif item.Value = Tag.Next then
-                created[createdCount] <- item.Key
-                createdCount <- createdCount + 1
-            // else
-            //     content[contentCount] <- item.Key
-            //     contentCount <- contentCount + 1
+            for item in tags do
+                if item.Value = Tag.Last then
+                    removed[removedCount] <- item.Key
+                    removedCount <- removedCount + 1
+                elif item.Value = Tag.Next then
+                    created[createdCount] <- item.Key
+                    createdCount <- createdCount + 1
+                // else
+                //     content[contentCount] <- item.Key
+                //     contentCount <- contentCount + 1
 
-        {
-            removed = removed
-            created = created
-            // content = content
-        }
+            Some {
+                removed = removed
+                created = created
+                // content = content
+            }
 
 type Compute =
     static member difference (last: 'T array, next: 'T array) =
