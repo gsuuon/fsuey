@@ -5,7 +5,7 @@ open TestReferences
 open FSUI.Difference
 open type Compute
 
-let (=^) (resultsA: Option<Difference.Changes<'T>>) (resultsB: Option<Difference.Changes<'T>>) =
+let (=^) (resultsA: Option<Changes<'T>>) (resultsB: Option<Changes<'T>>) =
     match resultsA, resultsB with
     | None, None -> true
     | Some a, Some b ->
