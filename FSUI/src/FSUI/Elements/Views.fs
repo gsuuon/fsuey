@@ -13,7 +13,7 @@ let inline mkRender<'prop, 'data, 'node, 'env>
     =
     (renderer env) props data pos
 
-let text x = mkRender (fun (env: #IText<'props, 'node>) -> env.Text) x
+let text x = mkRender (fun (env: #IText<'prop, 'node>) -> env.Text) x
 let gameObject x = mkRender (fun (env: #IGameObject<_,_,_>) -> env.GameObject) x
 
 let div props children (env: #IContainer<_,_>) pos =
