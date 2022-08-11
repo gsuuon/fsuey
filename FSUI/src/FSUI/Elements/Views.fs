@@ -3,10 +3,10 @@ module FSUI.Elements.Views
 open FSUI.Elements.Interfaces
 open FSUI.Renderer.Element
 
-let inline mkRender<'props, 'data, 'node, 'env>
+let inline mkRender<'prop, 'data, 'node, 'env>
     ([<InlineIfLambda>]
-        renderer: 'env -> RendersElement<'props, 'data, 'node>)
-    (props: 'props)
+        renderer: 'env -> RendersElement<'prop, 'data, 'node>)
+    (props: seq<'prop>)
     (data: 'data)
     (env: 'env)
     (pos: Position)

@@ -12,17 +12,17 @@ type Position =
 
 type IElement<'prop, 'data, 'visual> =
     abstract Create: seq<'prop> -> 'data -> 'visual
-    abstract Change: Changes<'prop> -> 'visual
+    abstract Change: Changes<'prop> -> 'visual -> 'visual
     abstract Update: 'data -> 'data -> 'visual
 
 type ElementRecord<'p, 'd, 'v> =
     { create : seq<'p> -> 'd -> 'v
-      change : Changes<'p> -> 'v
+      change : Changes<'p> -> 'v -> 'v
       update : 'd -> 'd -> 'v
     }
     interface IElement<'p, 'd, 'v> with
         member this.Create props data = this.create props data
-        member this.Change changes = this.change changes
+        member this.Change changes visual = this.change changes visual
         member this.Update lastData thisData = this.update lastData thisData
 
 type RendersElement<'prop, 'data, 'node> = seq<'prop> -> 'data -> Position -> 'node
