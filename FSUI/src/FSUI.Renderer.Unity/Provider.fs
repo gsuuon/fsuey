@@ -27,12 +27,17 @@ module Renderer =
             view env Root |> document.rootVisualElement.Add
             env.Cache.Swap()
 
+[<CustomEquality>]
+type Keyed<'T> = Keyed of string * 'T
+// TODO custom equality (why isn't this erroring?
+// can string be generic instead?
+    
+
 [<AutoOpen>]
 module Types =
     type ScreenProp =
         | Class of string
 
-    type ScreenProps = ScreenProp list
     type ScreenElement = VisualElement
 
     type WorldElement = GameObject
@@ -62,79 +67,91 @@ module Types =
 
             base.RemoveFromHierarchy()
 
+type ScreenElementRecord<'d, 'v> = {
+    create : seq<ScreenProp> -> 'd -> 'v
+    update : 'd -> 'd -> 'v -> 'v
+}
+
 [<AutoSerializable(false)>] // Unity will try to serialize this and hit depth limits
 type UnityProvider() =
     let ulog x = Debug.Log x
     let swappers = Swappers()
 
-    let screen (x: IElement<'props, 'data, 'visual>) =
-        create (fun x -> x :> VisualElement) (swappers.Create Graph.remove) x
+    let changeScreenProps (changes: FSUI.Difference.Changes<ScreenProp>) (el: #VisualElement) = el
+
+    let screen (el: ScreenElementRecord<'data, 'visual>) =
+        create
+            (fun x -> x :> VisualElement)
+            (swappers.Create Graph.remove) 
+            { create = el.create
+              update = el.update
+              change = changeScreenProps
+            }
 
     let world (x: IElement<'props, 'data, WorldElement>) =
         create id (swappers.Create Graph.remove) x
 
     let polyString = // Example of multiple specializations of an interface (can't `member val`)
         screen {
-            create = fun p d         -> Label d
-            update = fun p' d' e p d -> e.text <- d; e
+            create = fun p d    -> Label d
+            update = fun d' d e -> e.text <- d; e
         }
 
     interface IProvider with
         member _.Cache = swappers
 
-    interface IText<ScreenProps, ScreenElement> with
+    interface IText<ScreenProp, ScreenElement> with
         member val Text =
             screen {
-                create = fun p d         -> Label d
-                update = fun p' d' e p d -> e.text <- d; e
+                create = fun p d    -> Label d
+                update = fun d' d e -> e.text <- d ;e
             }
 
-    interface IContainer<ScreenProps, ScreenElement> with
+    interface IContainer<ScreenProp, ScreenElement> with
         member val Container =
             screen {
-                create = fun p d         -> Graph.addChildren (d, new VisualElement())
-                update = fun p' d' e p d -> Graph.addChildren (d, e)
+                create = fun p d    -> Graph.addChildren (d, new VisualElement())
+                update = fun d' d e -> Graph.addChildren (d, e)
                     // Assumes adding same element is no-op
                     // swapper's swap should take care of removing stale children
             }
 
-    interface IGameObject<WorldElement.Hooks.Prop list, string, WorldElement> with
+    interface IGameObject<WorldElement.Hooks.Prop, string, WorldElement> with
         member val GameObject =
             WorldElement.Element.create GameObject swappers
 
-    member val Prefab : RendersElement<WorldElement.Hooks.Prop list, string, WorldElement> =
+    member val Prefab : RendersElement<WorldElement.Hooks.Prop, string, WorldElement> =
         WorldElement.Element.create
             (Resources.Load<GameObject> >> GameObject.Instantiate<GameObject>)
             swappers
 
     // TODO Can I avoid rendering an empty VisualElement to contain game objects?
-    interface IJoinContain<ScreenProps, GameObject list, ScreenElement> with
+    interface IJoinContain<ScreenProp, GameObject list, ScreenElement> with
         member val JoinContain =
             screen {
                 create = fun p d         -> VisualGameObjectContainer d
-                update = fun p' d' e p d -> e // TODO
+                update = fun d' d e -> e // TODO
             }
     
-    interface IButton<ScreenProps, ScreenElement * (unit -> unit), ScreenElement> with
+    interface IButton<ScreenProp, ScreenElement * Keyed<unit -> unit>, ScreenElement> with
         member val Button =
             screen {
-                create = fun p ((child, action)) ->
+                create = fun p ((child, Keyed (_, action))) ->
                     ScreenNode.addChild (Button (System.Action action)) child
-                update = fun p' ((_, action')) e p ((child, action)) ->
-                    if action'.GetType() <> action.GetType() then // TODO do this better
-                        e.remove_clicked action'
-                        e.add_clicked action
+                update = fun ((_, Keyed (_, action'))) ((child, Keyed (_, action))) e ->
+                    e.remove_clicked action'
+                    e.add_clicked action
 
                     ScreenNode.addChild e child
             }
 
     // NOTE These are just examples of multiple specializations
-    interface IPoly<ScreenProps, obj, VisualElement> with
+    interface IPoly<ScreenProp, obj, VisualElement> with
         member val Poly =
             screen {
-                create = fun p d         -> Label (string d)
-                update = fun p' d' e p d -> e.text <- (string d); e
+                create = fun p d    -> Label (string d)
+                update = fun d' d e -> e.text <- (string d); e
             }
 
-    interface IPoly<ScreenProps, string, VisualElement> with
+    interface IPoly<ScreenProp, string, VisualElement> with
         member _.Poly = polyString
