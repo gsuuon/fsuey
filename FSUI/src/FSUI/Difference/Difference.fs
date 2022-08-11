@@ -14,17 +14,14 @@ module Difference =
         | Next = 1
         | Both = 2
 
-    let inline empty< ^a when 'a : (static member Empty : 'a)> () = (^a : (static member Empty : 'a) ())
-    let inline length x = (^a : (member Length : int) x)
     let inline compute< ^a, 'b
-                            when 'a : (member Length : int)
-                             and 'a :> seq<'b>
+                            when 'a :> seq<'b>
                              and 'b : equality >
         (last: 'a)
         (next: 'a)
             : Option<Changes<'b> >
         =
-        let count = length next + length last
+        let count = Seq.length next + Seq.length last
         let tags = Dictionary count
 
         let mutable removedCount = 0
