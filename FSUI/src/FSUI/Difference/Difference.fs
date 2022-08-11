@@ -2,21 +2,17 @@ namespace FSUI.Difference
 
 open System.Collections.Generic
 
+type Changes<'T> =
+    { removed : array<'T>      
+      created : array<'T>
+      // content : array<'T>
+    }
+
 module Difference =
     type Tag =
         | Last = 0
         | Next = 1
         | Both = 2
-
-    type Changes<'T> =
-        { removed : array<'T>      
-          created : array<'T>
-          // content : array<'T>
-        }
-        static member Empty =
-            { removed = Array.empty
-              created = Array.empty
-            }
 
     let inline empty< ^a when 'a : (static member Empty : 'a)> () = (^a : (static member Empty : 'a) ())
     let inline length x = (^a : (member Length : int) x)
@@ -52,6 +48,7 @@ module Difference =
 
         if removedCount = 0 && createdCount = 0 then
             None
+            // Can't just return an empty changes here without creating a new one each time since 'b would escape scope
         else
             let mutable removed = Array.zeroCreate removedCount
             let mutable created = Array.zeroCreate createdCount
