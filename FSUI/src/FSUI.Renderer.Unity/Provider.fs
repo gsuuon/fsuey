@@ -1,5 +1,7 @@
 namespace FSUI.Renderer.Unity
 
+open System.Collections.Generic
+
 open UnityEngine
 open UnityEngine.UIElements
 
@@ -68,7 +70,7 @@ module Types =
             base.RemoveFromHierarchy()
 
 type ScreenElementRecord<'d, 'v> = {
-    create : seq<ScreenProp> -> 'd -> 'v
+    create : IReadOnlyCollection<ScreenProp> -> 'd -> 'v
     update : 'd -> 'd -> 'v -> 'v
 }
 
