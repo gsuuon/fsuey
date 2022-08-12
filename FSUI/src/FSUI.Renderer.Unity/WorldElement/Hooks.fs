@@ -19,7 +19,7 @@ let private addUnique (err: string) key item (dct: Dictionary<_,_>) =
     if not <| dct.TryAdd (key, item) then
         eprintf "Duplicate key: %A -- %s" key err
 
-let create (props: Prop list) visual =
+let create (props: IReadOnlyCollection<Prop>) visual =
     let propsDetach = Dictionary<_, _>()
 
     for hook in props do
@@ -34,7 +34,7 @@ let create (props: Prop list) visual =
 
     propsDetach
     
-let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: Prop list) visual =
+let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: IReadOnlyCollection<Prop>) visual =
     let nextPropsDetach = Dictionary<_, _>()
 
     for hook in thisProps do
