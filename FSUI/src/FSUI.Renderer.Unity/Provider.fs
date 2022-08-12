@@ -41,9 +41,7 @@ module Types =
                 let (Keyed (key', _)) = other
                 key = key'
 
-    type ScreenProp =
-        | Class of string
-
+    type ScreenProp = ScreenElement.Prop
     type ScreenElement = VisualElement
 
     type WorldElement = GameObject
@@ -83,7 +81,10 @@ type UnityProvider() =
     let ulog x = Debug.Log x
     let swappers = Swappers()
 
-    let changeScreenProps (changes: FSUI.Difference.Changes<ScreenProp>) (el: #VisualElement) = el
+    let changeScreenProps (changes: FSUI.Difference.Changes<ScreenProp>) (el: #VisualElement) =
+        changes.created |> ScreenElement.Props.applyProps el
+        changes.removed |> ScreenElement.Props.unapplyProps el
+        el
 
     let screen (el: ScreenElementRecord<'data, 'visual>) =
         create

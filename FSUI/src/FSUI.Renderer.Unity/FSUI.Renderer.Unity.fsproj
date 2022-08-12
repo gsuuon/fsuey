@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="ScreenElement/Props.fs" />
     <Compile Include="WorldElement/Behaviors.fs" />
     <Compile Include="WorldElement/Hooks.fs" />
     <Compile Include="WorldElement/Element.fs" />
