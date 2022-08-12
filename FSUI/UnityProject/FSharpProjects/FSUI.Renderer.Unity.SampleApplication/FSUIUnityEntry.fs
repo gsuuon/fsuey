@@ -34,9 +34,11 @@ module App =
             let itemButton item =
                 button []
                     ( text [] (sprintf "Choose: %A" item)
-                    , fun () ->
+                    , Keyed ("click", fun () ->
                         dlog <| sprintf "Clicked item %A" item
-                        resolve item )
+                        resolve item
+                      )
+                    )
 
             render
              <| div [] [
@@ -73,9 +75,10 @@ module App =
                         text [] (sprintf "The item: %A" selectedItem)
                         button []
                             ( poly "Confirm" // child
-                            , fun () ->
+                            , Keyed ("resolves", fun () ->
                                   resolve ()
                                   dlog "clicked"
+                              )
                             )
                     ] 
 
