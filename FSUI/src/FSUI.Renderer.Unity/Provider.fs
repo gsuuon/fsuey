@@ -45,11 +45,6 @@ module Types =
     type ScreenElement = VisualElement
 
     type WorldElement = GameObject
-    type WorldProp =
-        | Start of System.Action
-        | Update of System.Action
-        | Child of child: GameObject
-    type WorldProps = WorldProp list
 
     type WorldElementType =
         | Empty of name: string
