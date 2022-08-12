@@ -15,9 +15,9 @@ type Prop =
     | Effect of (GameObject -> unit)
     | Attach of HookKey * (GameObject -> (unit -> unit))
 
-let private addUnique (err: Lazy<string>) key item (dct: Dictionary<_,_>) =
+let private addUnique (err: string) key item (dct: Dictionary<_,_>) =
     if not <| dct.TryAdd (key, item) then
-        System.Console.Error.Write (err.Force())
+        eprintf "Duplicate key: %A -- %s" key err
 
 let create (props: Prop list) visual =
     let propsDetach = Dictionary<_, _>()
@@ -28,7 +28,7 @@ let create (props: Prop list) visual =
         | Attach (key, attach) ->
             propsDetach
              |> addUnique
-                    (lazy ("Rendered multiple hooks with the same key: " + key.ToString()))
+                    "Rendered multiple hooks"
                     key
                     (attach visual)
 
@@ -46,13 +46,13 @@ let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: Prop list)
             if existed then
                 nextPropsDetach
                  |> addUnique
-                        (lazy ("Updated existing hook with duplicate key: " + key.ToString() ) )
+                        "Updated existing hook"
                         key
                         lastDetach
             else
                 nextPropsDetach
                  |> addUnique
-                        (lazy ("Added new hook with duplicate key: " + key.ToString() ) )
+                        "Added new hook"
                         key
                         (attach visual)
 
