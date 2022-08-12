@@ -29,14 +29,18 @@ module Renderer =
             view env Root |> document.rootVisualElement.Add
             env.Cache.Swap()
 
-[<CustomEquality>]
-type Keyed<'T> = Keyed of string * 'T
-// TODO custom equality (why isn't this erroring?
-// can string be generic instead?
     
-
 [<AutoOpen>]
 module Types =
+    [<CustomEquality; NoComparison>] // TODO can string be generic instead?
+    type Keyed<'T> = Keyed of string * 'T
+        with
+        interface System.IEquatable<Keyed<'T>> with
+            member this.Equals other =
+                let (Keyed (key, _)) = this
+                let (Keyed (key', _)) = other
+                key = key'
+
     type ScreenProp =
         | Class of string
 
