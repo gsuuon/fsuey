@@ -1,12 +1,14 @@
 module FSUI.Elements.Views
 
+open System.Collections.Generic
+
 open FSUI.Elements.Interfaces
 open FSUI.Renderer.Element
 
 let inline mkRender<'prop, 'data, 'node, 'env>
     ([<InlineIfLambda>]
         renderer: 'env -> RendersElement<'prop, 'data, 'node>)
-    (props: seq<'prop>)
+    (props: IReadOnlyCollection<'prop>)
     (data: 'data)
     (env: 'env)
     (pos: Position)
