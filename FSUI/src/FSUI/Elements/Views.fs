@@ -24,7 +24,7 @@ let div props children (env: #IContainer<_,_>) pos =
 
     env.Container props nodes pos
 
-let button props (child: 'env -> Position -> 'node, action: unit -> unit) (env: #IButton<_,_,_>) pos =
+let button props (child: 'env -> Position -> 'node, action) (env: #IButton<_,_,_>) pos =
     let childNode = child env (Ordinal (pos, 0))
 
     env.Button props (childNode, action) pos
