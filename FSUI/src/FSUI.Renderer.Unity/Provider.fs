@@ -32,10 +32,10 @@ module Renderer =
     
 [<AutoOpen>]
 module Types =
-    [<CustomEquality; NoComparison>] // TODO can string be generic instead?
-    type Keyed<'T> = Keyed of string * 'T
+    [<CustomEquality; NoComparison>]
+    type Keyed<'K, 'T when 'K : equality> = Keyed of 'K * 'T
         with
-        interface System.IEquatable<Keyed<'T>> with
+        interface System.IEquatable<Keyed<'K, 'T>> with
             member this.Equals other =
                 let (Keyed (key, _)) = this
                 let (Keyed (key', _)) = other
@@ -139,7 +139,7 @@ type UnityProvider() =
                 update = fun d' d e -> e // TODO
             }
     
-    interface IButton<ScreenProp, ScreenElement * Keyed<unit -> unit>, ScreenElement> with
+    interface IButton<ScreenProp, ScreenElement * Keyed<string, unit -> unit>, ScreenElement> with
         member val Button =
             screen {
                 create = fun p ((child, Keyed (_, action))) ->
