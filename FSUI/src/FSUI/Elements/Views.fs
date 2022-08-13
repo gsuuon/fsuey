@@ -2,13 +2,15 @@ module FSUI.Elements.Views
 
 open System.Collections.Generic
 
+open FSUI.Types
 open FSUI.Elements.Interfaces
 open FSUI.Renderer.Element
 
+// This applies 'env
 let inline mkRender<'prop, 'data, 'node, 'env>
     ([<InlineIfLambda>]
-        renderer: 'env -> RendersElement<'prop, 'data, 'node>)
-    (props: IReadOnlyCollection<'prop>)
+        renderer: 'env -> Applies<'prop, 'data, 'node>)
+    (props: 'prop collection)
     (data: 'data)
     (env: 'env)
     (pos: Position)

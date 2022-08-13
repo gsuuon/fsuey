@@ -9,7 +9,7 @@ open FSUI.Difference
 open FSUI.Types
 
 type ElementRecord<'p, 'd, 'v> =
-    { create : IReadOnlyCollection<'p> -> 'd -> 'v
+    { create : 'p collection -> 'd -> 'v
       change : Changes<'p> -> 'v -> 'v
       update : 'd -> 'd -> 'v -> 'v
     }
@@ -17,8 +17,6 @@ type ElementRecord<'p, 'd, 'v> =
         member this.Create props data = this.create props data
         member this.Change changes visual = this.change changes visual
         member this.Update lastData thisData visual = this.update lastData thisData visual
-
-type RendersElement<'prop, 'data, 'node> = IReadOnlyCollection<'prop> -> 'data -> Position -> 'node
 
 [<AutoOpen>]
 module Util =
@@ -44,11 +42,11 @@ let create<'prop, 'data, 'visual, 'node, 'element
                  and 'data : equality
                  >
     (asNode: 'visual -> 'node)
-    (cache: Swapper<Position, IReadOnlyCollection<'prop>, 'data, 'visual>)
+    (cache: Swapper<Position, 'prop collection, 'data, 'visual>)
     (element: 'element)
-        : RendersElement<'prop, 'data, 'node>
+        : Applies<'prop, 'data, 'node>
     =
-    fun (props: IReadOnlyCollection<'prop>) (data: 'data) (pos: Position) ->
+    fun (props: 'prop collection) (data: 'data) (pos: Position) ->
         let (exists, last) = cache.Stale.Remove pos // match .. with syntax doesn't get the correct overload
 
         match exists, last with
