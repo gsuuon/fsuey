@@ -88,11 +88,12 @@ module Memoize1 =
 
     let doOnce = once doThing |> pin
 
+
     (*
     doOnce 1 |> printfn "> %i"
     doOnce 1 |> printfn "> %i"
-    doOnce 1 |> printfn "> %i"
-    doOnce 1 |> printfn "> %i"
+    doOnce 2 |> printfn "> %i"
+    doOnce 3 |> printfn "> %i"
 
     Did something with 1
     > 2
@@ -118,9 +119,8 @@ module Memoize2 =
     (*
     doOnce 1 |> printfn "> %i"
     doOnce 1 |> printfn "> %i"
-    doOnce 1 |> printfn "> %i"
-    doOnce 1 |> printfn "> %i"
-
+    doOnce 2 |> printfn "> %i"
+    doOnce 3 |> printfn "> %i"
 
     Did something with 1
     > 2
@@ -131,20 +131,20 @@ module Memoize2 =
 
 module Stateful =
     let rec addMore n =
-        State (fun x -> x + n, addMore (n + 1) )
+        State (fun x ->
+            x + n, addMore (n + 1)
+        )
 
-    let add = addMore 1 |> pin
+    // Each call of addMore will add an increasing base number to the argument
+    let add = addMore 0 |> pin
 
+    add 0 |> printfn "> %i"
+    add 0 |> printfn "> %i"
+    add 0 |> printfn "> %i"
+    add 5 |> printfn "> %i"
     (*
-    add 1 |> printfn "> %i"
-    add 1 |> printfn "> %i"
-    add 1 |> printfn "> %i"
-    add 1 |> printfn "> %i"
-    add 1 |> printfn "> %i"
-
+    > 0
+    > 1
     > 2
-    > 3
-    > 4
-    > 5
-    > 6
+    > 8
     *)
