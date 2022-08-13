@@ -35,7 +35,7 @@ module App =
             let itemButton item =
                 button []
                     ( text [] (sprintf "Choose: %A" item)
-                    , Keyed ("click", fun () ->
+                    , does ("select item", fun () ->
                         dlog <| sprintf "Clicked item %A" item
                         resolve item
                       )
@@ -94,7 +94,7 @@ module App =
                         text [] (sprintf "The item: %A" selectedItem)
                         button []
                             ( poly "Confirm" // child
-                            , Keyed ("resolves", fun () ->
+                            , does ("continue", fun () ->
                                   resolve ()
                                   dlog "clicked"
                               )

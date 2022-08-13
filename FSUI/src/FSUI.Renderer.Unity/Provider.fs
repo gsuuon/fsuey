@@ -46,14 +46,18 @@ module Renderer =
     
 [<AutoOpen>]
 module Types =
+    /// Compute equals on key, ignoring value
     [<CustomEquality; NoComparison>]
-    type Keyed<'K, 'T when 'K : equality> = Keyed of 'K * 'T
+    type Keyed<'K, 'T when 'K : equality> = Keyed of key: 'K * value: 'T
         with
         interface System.IEquatable<Keyed<'K, 'T>> with
             member this.Equals other =
                 let (Keyed (key, _)) = this
                 let (Keyed (key', _)) = other
                 key = key'
+
+    /// Better semantics for Button
+    let does (k, v) = Keyed (k, v)
 
     type ScreenProp = ScreenElement.Props.Prop
     type ScreenElement = VisualElement
@@ -155,9 +159,11 @@ type UnityProvider() =
     interface IButton<ScreenProp, ScreenElement * Keyed<string, unit -> unit>, ScreenElement> with
         member val Button =
             screen {
-                create = fun ((child, Keyed (_, action))) ->
-                    ScreenNode.addChild (Button (System.Action action)) child
-                update = fun ((_, Keyed (_, action'))) ((child, Keyed (_, action))) e ->
+                create = fun (child, Keyed (_, action) ) ->
+                    ScreenNode.addChild
+                        (Button (System.Action action) ) // directly stick the fn on without converting to delegate or we can't remove
+                        child
+                update = fun (_, Keyed (_, action') ) (child, Keyed (_, action) ) e ->
                     e.remove_clicked action'
                     e.add_clicked action
 
