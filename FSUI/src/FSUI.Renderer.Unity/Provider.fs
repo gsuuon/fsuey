@@ -123,17 +123,16 @@ type UnityProvider() =
     interface IText<ScreenProp, ScreenElement> with
         member val Text =
             screen {
-                create = fun d    -> Label d
+                create = fun d      -> Label d
                 update = fun d' d e -> e.text <- d ;e
             }
 
     interface IContainer<ScreenProp, ScreenElement> with
         member val Container =
             screen {
-                create = fun d    -> Graph.addChildren (d, new VisualElement())
+                create = fun d      -> Graph.addChildren (d, new VisualElement())
                 update = fun d' d e -> Graph.addChildren (d, e)
-                    // Assumes adding same element is no-op
-                    // swapper's swap should take care of removing stale children
+                    // Assumes adding same element is no-op, swapper takes care of removing stale children
             }
 
     interface IGameObject<WorldElement.Hooks.Prop, string, WorldElement> with

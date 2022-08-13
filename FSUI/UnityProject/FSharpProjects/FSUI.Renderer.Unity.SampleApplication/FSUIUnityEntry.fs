@@ -19,7 +19,7 @@ open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 module Util =
     let dlog x = Debug.Log x
 
-    let printToUnity () = // TODO this seems to split messages up into multiple lines
+    let printToUnity () = // TODO stringbuilder to not add newline on each write
         System.Console.SetOut
             { new System.IO.StringWriter() with
                 member _.Write (msg: string) = Debug.Log msg
@@ -53,9 +53,27 @@ module App =
     // Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
     let main (render: Renders<UnityProvider, VisualElement>) =
         flow {
-            render <| div [] [ text [ Class "title" ] "foo" ]
-            yield (WaitForSeconds 1.5f)
+            render
+             <| div [] [
+                    text
+                        [ Class "title"
+                          Class "transitions"
+                          Class "pre-show"
+                        ]
+                        "foo"
+                    ]
+            yield (WaitForEndOfFrame () )
 
+            render
+             <| div [] [
+                    text
+                        [ Class "title"
+                          Class "transitions"
+                        ]
+                        "foo"
+                     ]
+
+            yield (WaitForSeconds 3.2f)
             let! selectedItem = ItemComponent.selectItem render
 
             do! fun resolve ->
