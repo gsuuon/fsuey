@@ -1,9 +1,6 @@
 module FSUI.Renderer.Element
 
-open System.Collections.Generic
-
 open FSUI.Renderer.Cache
-open FSUI.Renderer.Provider
 
 open FSUI.Difference
 open FSUI.Types

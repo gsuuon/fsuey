@@ -1,7 +1,6 @@
 namespace FSUI.Elements.Interfaces
 
 open FSUI.Types
-open FSUI.Renderer.Element
 
 type IPoly<'prop, 'data, 'node> =
     abstract member Poly : Applies<'prop, 'data, 'node>

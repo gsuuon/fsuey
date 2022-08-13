@@ -1,10 +1,7 @@
 module FSUI.Elements.Views
 
-open System.Collections.Generic
-
 open FSUI.Types
 open FSUI.Elements.Interfaces
-open FSUI.Renderer.Element
 
 // This applies 'env
 let inline mkRender<'prop, 'data, 'node, 'env>
