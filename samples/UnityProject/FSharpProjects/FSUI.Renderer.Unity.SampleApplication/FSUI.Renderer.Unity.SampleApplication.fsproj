@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+  <TargetFramework>netstandard2.1</TargetFramework>
+  <PublishDir>../../Assets/Assemblies/</PublishDir>
+
+  <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <Deterministic>false</Deterministic>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <UnityEditorVersion>2021.3.2f1</UnityEditorVersion>
+    <UnityLibraryDir>C:\Program Files\Unity\Hub\Editor\$(UnityEditorVersion)\Editor\Data\Managed\UnityEngine\</UnityLibraryDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../../../code/src/FSUI.Renderer.Unity/FSUI.Renderer.Unity.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Embedded debug info breaks il2cpp build, we need to rebuild FSharp.Core with <DebugType>none</DebugType> -->
+    <PackageReference Update="FSharp.Core" ExcludeAssets="all" />
+    <Reference Include="./FSharp.Core.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="AppViews.fs" />
+    <Compile Include="FSUIUnityEntry.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="UnityEngine">
+      <Private>false</Private>
+      <HintPath>$(UnityLibraryDir)UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <Private>false</Private>
+      <HintPath>$(UnityLibraryDir)UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <Private>false</Private>
+      <HintPath>$(UnityLibraryDir)UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
