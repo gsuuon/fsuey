@@ -74,8 +74,23 @@ module App =
                         "foo"
                      ]
 
-            yield (WaitForSeconds 3.2f)
+            yield (WaitForSeconds 2.f)
             let! selectedItem = ItemComponent.selectItem render
+
+            yield (WaitForEndOfFrame() :> YieldInstruction) // TODO why is this necessary here?
+            render
+             <| div [] [
+                    at "tell" <| text [] (sprintf "You picked %A" selectedItem)
+                    at "grats" <| text [] "good job!"
+                ]
+            yield (WaitForSeconds 2.f)
+            render
+             <| div [] [ // would expect items to stay in same positions
+                         // no -- div re-adds the elements in their new order
+                    at "grats" <| text [] "good job!!!!"
+                    at "tell" <| text [] (sprintf "Your item %A" selectedItem)
+                ]
+            yield (WaitForSeconds 2.f)
 
             do! fun resolve ->
                 render

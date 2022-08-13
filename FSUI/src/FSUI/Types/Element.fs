@@ -7,7 +7,7 @@ type Position =
     member this.Named name =
         match this with
         | Root | Nominal _      -> this
-        | Ordinal (parent, idx) -> Nominal (parent, name)
+        | Ordinal (parent, _) -> Nominal (parent, name)
 
 type collection<'T> = // TODO -- propcollection?
     System.Collections.Generic.IReadOnlyCollection<'T>

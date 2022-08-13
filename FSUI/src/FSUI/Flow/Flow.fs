@@ -72,7 +72,7 @@ type FlowBuilder() =
         match flow1, flow2 with
         | Wait (Some x, None), Wait(None, Some work)
                                  -> Wait (Some x, Some work) // yield
-        | Done x, _              -> flow1              // return
+        | Done _, _              -> flow1              // return
         | Wait (None, None), _   -> flow2
         | Wait (x, None), _      -> Wait (x, Some (fun () -> flow2) )
         | Wait (x, Some work), _ -> Wait (x, Some (fun () -> this.Combine(work(), flow2) ) )
