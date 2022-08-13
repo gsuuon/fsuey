@@ -22,11 +22,25 @@ module Flow =
     let flow = UnityFlow()
 
 module Renderer =
+    type private Once(fn) as this =
+        // Probably should just use the straighforward mutable option cache
+        // Really wanted to avoid branching
+        // do an actual benchmark on this vs other memoization (versionedfuncs / state)
+        member val private fn =
+            fun x ->
+                let y = fn x
+                this.fn <- fun _ -> y
+                y
+            with get, set
+
+        member this.Invoke x = this.fn x
+
     let mount<'T when 'T : (new : unit -> 'T) and 'T :> IProvider > (document: UIDocument) =
         let env = new 'T()
+        let addOnce = Once (fun el -> document.rootVisualElement.Add el)
 
         fun view ->
-            view env Root |> document.rootVisualElement.Add
+            view env Root |> addOnce.Invoke
             env.Cache.Swap()
 
     
