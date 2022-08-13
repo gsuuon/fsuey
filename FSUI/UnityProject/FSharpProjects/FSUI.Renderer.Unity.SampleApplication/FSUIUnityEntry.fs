@@ -3,6 +3,7 @@ namespace FSUI.Renderer.Unity.SampleApplication.Entry
 open UnityEngine
 open UnityEngine.UIElements
 
+open FSUI.Types
 open FSUI.Elements.Views
 open FSUI.Renderer.Element // Position is here TODO move the most commonly used items to root namespaces (FSUI, FSUI.Unity)
 open FSUI.Renderer.Unity
