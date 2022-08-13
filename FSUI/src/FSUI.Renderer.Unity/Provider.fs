@@ -1,7 +1,5 @@
 namespace FSUI.Renderer.Unity
 
-open System.Collections.Generic
-
 open UnityEngine
 open UnityEngine.UIElements
 

@@ -1,6 +1,5 @@
 module FSUI.Renderer.Unity.WorldElement.Behaviors
 
-open System
 open UnityEngine
 
 type ApplyGameObject = delegate of GameObject -> unit
