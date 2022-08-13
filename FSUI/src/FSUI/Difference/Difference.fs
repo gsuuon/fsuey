@@ -1,12 +1,7 @@
 module FSUI.Difference
 
 open System.Collections.Generic
-
-type Changes<'T> =
-    { removed : array<'T>      
-      created : array<'T>
-      // content : array<'T>
-    }
+open FSUI.Types
 
 type private Tag =
     | Last = 0
@@ -14,8 +9,8 @@ type private Tag =
     | Both = 2
 
 let difference<'T when 'T : equality>
-    (last: IReadOnlyCollection<'T>)
-    (next: IReadOnlyCollection<'T>)
+    (last: 'T collection)
+    (next: 'T collection)
         : Option<Changes<'T> >
     =
     let count = next.Count + last.Count

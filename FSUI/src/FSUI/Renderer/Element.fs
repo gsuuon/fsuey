@@ -6,27 +6,14 @@ open FSUI.Renderer.Cache
 open FSUI.Renderer.Provider
 
 open FSUI.Difference
-
-type Position =
-    | Ordinal of parent: Position * order: int
-    | Nominal of parent: Position * name: string
-    | Root
-    member this.Named name =
-        match this with
-        | Root | Nominal _      -> this
-        | Ordinal (parent, idx) -> Nominal (parent, name)
-
-type IElement<'prop, 'data, 'visual> =
-    abstract Create: IReadOnlyCollection<'prop> -> 'data -> 'visual
-    abstract Change: Changes<'prop> -> 'visual -> 'visual
-    abstract Update: 'data -> 'data -> 'visual -> 'visual
+open FSUI.Types
 
 type ElementRecord<'p, 'd, 'v> =
     { create : IReadOnlyCollection<'p> -> 'd -> 'v
       change : Changes<'p> -> 'v -> 'v
       update : 'd -> 'd -> 'v -> 'v
     }
-    interface IElement<'p, 'd, 'v> with
+    interface IElementRenderer<'p, 'd, 'v> with
         member this.Create props data = this.create props data
         member this.Change changes visual = this.change changes visual
         member this.Update lastData thisData visual = this.update lastData thisData visual
@@ -52,7 +39,7 @@ module Util =
         visual
 
 let create<'prop, 'data, 'visual, 'node, 'element
-                when 'element :> IElement<'prop, 'data, 'visual>
+                when 'element :> IElementRenderer<'prop, 'data, 'visual>
                  and 'prop : equality
                  and 'data : equality
                  >
