@@ -7,7 +7,7 @@ module _State =
     let mutable testCount = 0
     let mutable hasErrored = false
 
-let inline that msg expr =
+let that msg expr =
     try
         test expr
         _State.testCount <- _State.testCount + 1
@@ -21,7 +21,7 @@ let inline that msg expr =
          |> Array.iteri
             ( fun idx line ->
                 if idx = 0 then
-                    printf "Fails that: "
+                    eprintf "Fails that: "
                     Console.ForegroundColor <- ConsoleColor.Red
                     eprintfn "%s" msg
                     Console.ResetColor()
