@@ -8,9 +8,13 @@ open FSUI.Renderer.Provider
 open FSUI.Difference
 
 type Position =
-    | Ordinal of parent: Position * int
-    | Nominal of parent: Position * name: string * insertAfter: int
+    | Ordinal of parent: Position * order: int
+    | Nominal of parent: Position * name: string
     | Root
+    member this.Named name =
+        match this with
+        | Root | Nominal _      -> this
+        | Ordinal (parent, idx) -> Nominal (parent, name)
 
 type IElement<'prop, 'data, 'visual> =
     abstract Create: IReadOnlyCollection<'prop> -> 'data -> 'visual

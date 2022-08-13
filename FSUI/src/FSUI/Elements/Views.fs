@@ -35,3 +35,7 @@ let join props children (env: #IJoinContain<_,_,_>) pos =
         children |> List.mapi (fun idx fnode -> fnode env (Ordinal (pos, idx)))
 
     env.JoinContain props nodes pos
+
+let at (name: string) (renderer: 'env -> Position -> 'visual) =
+    fun env (pos: Position) ->
+        renderer env (pos.Named name)
