@@ -41,7 +41,7 @@ module Types =
                 let (Keyed (key', _)) = other
                 key = key'
 
-    type ScreenProp = ScreenElement.Prop
+    type ScreenProp = ScreenElement.Props.Prop
     type ScreenElement = VisualElement
 
     type WorldElement = GameObject
@@ -67,7 +67,7 @@ module Types =
             base.RemoveFromHierarchy()
 
 type ScreenElementRecord<'d, 'v> = {
-    create : IReadOnlyCollection<ScreenProp> -> 'd -> 'v
+    create : 'd -> 'v
     update : 'd -> 'd -> 'v -> 'v
 }
 
@@ -85,7 +85,11 @@ type UnityProvider() =
         create
             (fun x -> x :> VisualElement)
             (swappers.Create Graph.remove) 
-            { create = el.create
+            { create =
+                fun props data ->
+                    let visual = el.create data
+                    props |> ScreenElement.Props.applyProps visual
+                    visual
               update = el.update
               change = changeScreenProps
             }
@@ -95,7 +99,7 @@ type UnityProvider() =
 
     let polyString = // Example of multiple specializations of an interface (can't `member val`)
         screen {
-            create = fun p d    -> Label d
+            create = fun d    -> Label d
             update = fun d' d e -> e.text <- d; e
         }
 
@@ -105,14 +109,14 @@ type UnityProvider() =
     interface IText<ScreenProp, ScreenElement> with
         member val Text =
             screen {
-                create = fun p d    -> Label d
+                create = fun d    -> Label d
                 update = fun d' d e -> e.text <- d ;e
             }
 
     interface IContainer<ScreenProp, ScreenElement> with
         member val Container =
             screen {
-                create = fun p d    -> Graph.addChildren (d, new VisualElement())
+                create = fun d    -> Graph.addChildren (d, new VisualElement())
                 update = fun d' d e -> Graph.addChildren (d, e)
                     // Assumes adding same element is no-op
                     // swapper's swap should take care of removing stale children
@@ -131,14 +135,14 @@ type UnityProvider() =
     interface IJoinContain<ScreenProp, GameObject list, ScreenElement> with
         member val JoinContain =
             screen {
-                create = fun p d         -> VisualGameObjectContainer d
+                create = fun d      -> VisualGameObjectContainer d
                 update = fun d' d e -> e // TODO
             }
     
     interface IButton<ScreenProp, ScreenElement * Keyed<string, unit -> unit>, ScreenElement> with
         member val Button =
             screen {
-                create = fun p ((child, Keyed (_, action))) ->
+                create = fun ((child, Keyed (_, action))) ->
                     ScreenNode.addChild (Button (System.Action action)) child
                 update = fun ((_, Keyed (_, action'))) ((child, Keyed (_, action))) e ->
                     e.remove_clicked action'
@@ -151,7 +155,7 @@ type UnityProvider() =
     interface IPoly<ScreenProp, obj, VisualElement> with
         member val Poly =
             screen {
-                create = fun p d    -> Label (string d)
+                create = fun d      -> Label (string d)
                 update = fun d' d e -> e.text <- (string d); e
             }
 

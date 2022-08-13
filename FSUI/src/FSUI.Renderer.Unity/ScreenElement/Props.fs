@@ -1,23 +1,22 @@
-namespace FSUI.Renderer.Unity.ScreenElement
+module FSUI.Renderer.Unity.ScreenElement.Props
 
 open UnityEngine.UIElements
 
 type Prop =
     | Class of name: string
 
-module Props =
-    let apply (el: #VisualElement) =
-        function
-        | Class name ->
-            el.AddToClassList name
+let apply (el: #VisualElement) =
+    function
+    | Class name ->
+        el.AddToClassList name
 
-    let unapply (el: #VisualElement) =
-        function
-        | Class name ->
-            el.RemoveFromClassList name
+let unapply (el: #VisualElement) =
+    function
+    | Class name ->
+        el.RemoveFromClassList name
 
-    let applyProps (el: #VisualElement) (xs: array<Prop>) =
-        xs |> Array.iter (apply el)
+let applyProps (el: #VisualElement) (xs: seq<Prop>) =
+    xs |> Seq.iter (apply el)
 
-    let unapplyProps (el: #VisualElement) (xs: array<Prop>) =
-        xs |> Array.iter (unapply el)
+let unapplyProps (el: #VisualElement) (xs: seq<Prop>) =
+    xs |> Seq.iter (unapply el)
