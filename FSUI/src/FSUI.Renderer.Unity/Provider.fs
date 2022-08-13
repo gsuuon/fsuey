@@ -5,6 +5,7 @@ open System.Collections.Generic
 open UnityEngine
 open UnityEngine.UIElements
 
+open FSUI.Types
 open FSUI.Elements.Interfaces
 
 open FSUI.Renderer.Cache
@@ -94,7 +95,7 @@ type UnityProvider() =
     let ulog x = Debug.Log x
     let swappers = Swappers()
 
-    let changeScreenProps (changes: FSUI.Difference.Changes<ScreenProp>) (el: #VisualElement) =
+    let changeScreenProps (changes: Changes<ScreenProp>) (el: #VisualElement) =
         changes.created |> ScreenElement.Props.applyProps el
         changes.removed |> ScreenElement.Props.unapplyProps el
         el
@@ -112,7 +113,7 @@ type UnityProvider() =
               change = changeScreenProps
             }
 
-    let world (x: IElement<'props, 'data, WorldElement>) =
+    let world (x: IElementRenderer<'props, 'data, WorldElement>) =
         create id (swappers.Create Graph.remove) x
 
     let polyString = // Example of multiple specializations of an interface (can't `member val`)
@@ -143,7 +144,7 @@ type UnityProvider() =
         member val GameObject =
             WorldElement.Element.create GameObject swappers
 
-    member val Prefab : RendersElement<WorldElement.Hooks.Prop, string, WorldElement> =
+    member val Prefab : Applies<WorldElement.Hooks.Prop, string, WorldElement> =
         WorldElement.Element.create
             (Resources.Load<GameObject> >> GameObject.Instantiate<GameObject>)
             swappers
