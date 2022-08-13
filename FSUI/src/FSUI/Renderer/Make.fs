@@ -1,5 +1,6 @@
 module FSUI.Renderer.Make
 
+open FSUI.Types
 open FSUI.Renderer.Element
 open FSUI.Renderer.Provider
 
