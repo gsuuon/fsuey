@@ -36,14 +36,14 @@ module DataChanges =
 
     let sayFooOrBar = sayFoo "inti" |> pin
     (*
-    sayFooOrBar "hi" |> printfn "> %s"
-    sayFooOrBar "world" |> printfn "> %s"
-    sayFooOrBar "swap" |> printfn "> %s"
-    sayFooOrBar "hey" |> printfn "> %s"
+    sayFooOrBar "hi"     |> printfn "> %s"
+    sayFooOrBar "world"  |> printfn "> %s"
+    sayFooOrBar "swap"   |> printfn "> %s"
+    sayFooOrBar "hey"    |> printfn "> %s"
     sayFooOrBar "planet" |> printfn "> %s"
-    sayFooOrBar "swap" |> printfn "> %s"
+    sayFooOrBar "swap"   |> printfn "> %s"
     sayFooOrBar "greets" |> printfn "> %s"
-    sayFooOrBar "earth" |> printfn "> %s"
+    sayFooOrBar "earth"  |> printfn "> %s"
     > inti says hi as foo
     > inti says world as foo
     > inti says swap as foo
