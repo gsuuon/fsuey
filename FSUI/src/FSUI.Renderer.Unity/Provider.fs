@@ -17,7 +17,7 @@ module Flow =
 
     type UnityFlow() =
         inherit FlowBuilder() 
-        member _.Run x = Flow.asEnumerator x
+        member _.Run (x: Flow<_, YieldInstruction>) = Flow.asEnumerator x
 
     let flow = UnityFlow()
 
