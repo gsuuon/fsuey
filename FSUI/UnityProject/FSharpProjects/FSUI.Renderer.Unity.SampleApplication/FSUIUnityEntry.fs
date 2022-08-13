@@ -5,15 +5,14 @@ open UnityEngine.UIElements
 
 open FSUI.Types
 open FSUI.Elements.Views
-open FSUI.Renderer.Element // Position is here TODO move the most commonly used items to root namespaces (FSUI, FSUI.Unity)
 open FSUI.Renderer.Unity
 
 open FSUI.Renderer.Unity.Views
 open FSUI.Renderer.Unity.Flow
 open FSUI.Renderer.Unity.ScreenElement.Props
 open FSUI.Renderer.Unity.WorldElement.Behaviors
-open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 
+open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 
 [<AutoOpen>]

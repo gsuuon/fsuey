@@ -1,7 +1,6 @@
 namespace FSUI.Renderer.Unity.SampleApplication
 
 open FSUI.Types
-open FSUI.Renderer.Element
 open FSUI.Elements.Interfaces
 
 
