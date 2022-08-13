@@ -9,6 +9,7 @@ open FSUI.Renderer.Unity
 
 open FSUI.Renderer.Unity.Views
 open FSUI.Renderer.Unity.Flow
+open FSUI.Renderer.Unity.ScreenElement.Props
 open FSUI.Renderer.Unity.WorldElement.Behaviors
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 
@@ -52,7 +53,7 @@ module App =
     // Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
     let main (render: Renders<UnityProvider, VisualElement>) =
         flow {
-            render <| div [] [ text [] "foo" ]
+            render <| div [] [ text [ Class "title" ] "foo" ]
             yield (WaitForSeconds 1.5f)
 
             let! selectedItem = ItemComponent.selectItem render
