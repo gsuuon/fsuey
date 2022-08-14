@@ -34,13 +34,13 @@ type Env() =
     interface IText<Prop, Visual> with
         member val Text =
             mkElement {
-                create = fun _ data -> VisualText data
+                create = fun _ data -> Text data
                 update = fun _ data visual -> visual.Content <- data; visual
             }
 
     interface IContainer<Prop, Visual> with
         member val Container =
             mkElement {
-                create = fun _ data -> VisualCollection data
+                create = fun _ data -> Collection data
                 update = fun _ data visual -> visual.Children <- data; visual
             }
