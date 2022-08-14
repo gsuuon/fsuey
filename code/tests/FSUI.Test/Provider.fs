@@ -2,47 +2,45 @@ namespace FSUI.Test.Provider
 
 open FSUI.Test.Host
 
-open FSUI.Renderer.Element
+open FSUI.Types
+open FSUI.Renderer
 open FSUI.Renderer.Provider
 open FSUI.Renderer.Cache
 open FSUI.Elements.Interfaces
 
-type VisualProp =
+type Prop =
     | Class of string
 
-type Props = VisualProp list
-
-[<AbstractClass>]
-type VisualElement<'data, 'visual when 'visual :> Visual>(cache) =
-    inherit Element<'data, Props, 'visual, Visual>((fun x -> x :> Visual), cache)
+type TestElement<'p, 'd, 'v> =
+    { create : 'p collection -> 'd -> 'v
+      update : 'd -> 'd -> 'v -> 'v
+    }
 
 type Env() =
-    inherit Provider()
+    let swappers = Swappers()
 
-    interface IText<Props, VisualText, Visual> with
+    let mkElement (element: TestElement<_,_,_>) =
+        Element.create
+            (fun x -> x :> Visual)
+            (swappers.Create ignore)
+            { change = fun props visual -> visual // TODO
+              update = element.update
+              create = element.create
+            }
+
+    interface IProvider with
+        member _.Cache = swappers
+
+    interface IText<Prop, Visual> with
         member val Text =
-            { new VisualElement<string, VisualText>(base.Cache) with
-                member _.Create data props = VisualText data
-                member _.Update cachedContent cachedProps cachedVisual data props =
-                    cachedVisual.Content <- data
-                    cachedVisual
+            mkElement {
+                create = fun _ data -> VisualText data
+                update = fun _ data visual -> visual.Content <- data; visual
             }
 
-    interface IImage<Props, VisualImage, Visual> with
-        member val Image =
-            { new VisualElement<string, VisualImage>(base.Cache) with
-                member _.Create path props = VisualImage path
-                member _.Update cachedContent cachedProps cachedVisual path props =
-                    cachedVisual.Path <- path
-                    cachedVisual
-            }
-
-    interface IContainer<Props, VisualCollection, Visual> with
+    interface IContainer<Prop, Visual> with
         member val Container =
-            { new VisualElement<Visual list, VisualCollection>(base.Cache) with
-                member _.Create children props = VisualCollection children
-                member _.Update cachedChildren cachedProps cachedVisual children props =
-                    cachedVisual.Children <- children
-                    cachedVisual
+            mkElement {
+                create = fun _ data -> VisualCollection data
+                update = fun _ data visual -> visual.Children <- data; visual
             }
-
