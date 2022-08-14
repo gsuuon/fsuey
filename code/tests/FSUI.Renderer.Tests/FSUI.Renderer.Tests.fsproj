@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Sample.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 

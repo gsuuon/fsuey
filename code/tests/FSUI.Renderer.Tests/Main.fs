@@ -1,7 +1,8 @@
-﻿module FSUI.Renderer.Tests
+module FSUI.Renderer.Tests
 
 open Expecto
 
+open FSUI.Types
 open FSUI.Test.Provider
 open FSUI.Test.Host
 open FSUI.Elements.Views
@@ -12,20 +13,17 @@ let env = Env()
 
 type Model =
     { name : string
-      pic : string
     }
 
 module TestView =
     let view model =
-        div [
-            text [] $"Hi {model.name}"
-            image [] model.pic
-        ] []
+        div [] [
+            text [] "Hi"
+        ]
 
     let model =
         {
             name = "foo"
-            pic = "foo.webp"
         }
 
     let rootElement = view model env pos
@@ -36,12 +34,10 @@ module TestView =
             testCase "container elements correct" <| fun _ ->
                 let visualRoot = rootElement :?> VisualCollection
                 match visualRoot.Children with
-                | [el1; el2] ->
+                | [el1] ->
                     let textElement = el1 :?> VisualText
-                    let imageElement = el2 :?> VisualImage
 
                     Expect.equal textElement.Content $"Hi {model.name}" "Text content"
-                    Expect.equal imageElement.Path model.pic "Image path"
                 | _ ->
                     Tests.failtest "Root contains wrong number of children"
         ]
@@ -53,12 +49,7 @@ module TestRenderer =
         | Click
 
     let view model dispatch =
-        div [
-            // button []
-            //     ( "Click"
-            //     , fun _ -> dispatch Click
-            //     )
-        ]
+        div [] [] // TODO
 
 [<EntryPoint>]
 let main argv =
