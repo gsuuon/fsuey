@@ -25,22 +25,15 @@ let that msg expr =
              |> List.map decompile
 
         raise <| Expecto.AssertException (msg :: reduction |> String.concat "\n")
-        
-let mutations (x: Visual) = x.MutationLog.Length
-
-let contentMutations<'T when 'T :> Visual> (x: 'T) =
-    x.Content, x.MutationLog.Length
-
-let children (v: Visual) = (v :?> Collection).Children
 
 [<StackTraceHidden>]
 let layoutEquals getContent render  =
-    fun msg layout contents ->
-        let (renderedContents: Visual) = render layout
-        equal (getContent renderedContents) contents msg
+    fun msg layout expectedContents ->
+        let (renderedLayout: Visual) = render layout
+        equal (getContent renderedLayout) expectedContents msg
 
 let mkRender env =
     fun layout ->
-        let element = layout env Root
+        let visual = layout env Root
         (env :> IProvider).Cache.Swap()
-        element
+        visual
