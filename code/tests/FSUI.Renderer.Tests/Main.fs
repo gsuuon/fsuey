@@ -60,8 +60,7 @@ let tests =
         test "single ordinal collection" {
             let rendersContent = Env() |> mkRender |> layoutEquals
 
-            "content with no mutations"
-             |> rendersContent
+            "content with no mutations" |> rendersContent
                 (div [] [
                     text [] "foo"
                     text [] "bar"
@@ -70,8 +69,7 @@ let tests =
                   Content.Text "bar", 0
                 ]
 
-            "content is unchanged and no mutations"
-             |> rendersContent
+            "content is unchanged and no mutations" |> rendersContent
                 (div [] [
                     text [] "foo"
                     text [] "bar"
@@ -79,8 +77,7 @@ let tests =
                 [ Content.Text "foo", 0
                   Content.Text "bar", 0 ]
 
-            "first text changed"
-             |> rendersContent
+            "first text changed" |> rendersContent
                 (div [] [
                     text [] "foofoo"
                     text [] "bar"
@@ -88,8 +85,7 @@ let tests =
                 [ Content.Text "foofoo", 1
                   Content.Text "bar", 0 ]
 
-            "second text changed"
-             |> rendersContent
+            "second text changed" |> rendersContent
                 (div [] [
                     text [] "foofoo"
                     text [] "barbar"
@@ -97,8 +93,7 @@ let tests =
                 [ Content.Text "foofoo", 1
                   Content.Text "barbar", 1 ]
 
-            "text element added"
-             |> rendersContent
+            "text element added" |> rendersContent
                 (div [] [
                     text [] "foofoo"
                     text [] "barbar"
@@ -108,8 +103,7 @@ let tests =
                   Content.Text "barbar", 1
                   Content.Text "baz"   , 0 ]
 
-            "text element changed"
-             |> rendersContent
+            "text element changed" |> rendersContent
                 (div [] [
                     text [] "foofoo"
                     text [] "barbar"
@@ -118,6 +112,14 @@ let tests =
                 [ Content.Text "foofoo", 1
                   Content.Text "barbar", 1
                   Content.Text "bazbaz", 1 ]
+
+            "text element removed" |> rendersContent
+                (div [] [
+                    text [] "barbar"
+                    text [] "bazbaz"
+                ])
+                [ Content.Text "barbar", 2
+                  Content.Text "bazbaz", 2 ]
         }
     ]
 
