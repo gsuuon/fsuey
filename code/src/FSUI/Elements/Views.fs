@@ -38,3 +38,6 @@ let join props children (env: #IJoinContain<_,_,_>) pos =
 let at (name: string) (renderer: 'env -> Position -> 'visual) =
     fun env (pos: Position) ->
         renderer env (pos.Named name)
+
+/// Better semantics for Button
+let does (k, v) = Keyed (k, v)
