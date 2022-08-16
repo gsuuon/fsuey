@@ -42,11 +42,11 @@ module internal Utils =
 
     let children (v: Visual) = (v :?> Collection).Children
 
-    let layoutEquals render  =
-        fun layout contents msg ->
-            let collection = render layout
-            let childContentMutationCounts = collection |> children |> List.map contentMutations
-            equal childContentMutationCounts contents msg
+    [<StackTraceHidden>]
+    let layoutEquals getContent render  =
+        fun msg layout contents ->
+            let (renderedContents: Visual) = render layout
+            equal (getContent renderedContents) contents msg
     
     let mkRender env =
         fun layout ->
@@ -54,72 +54,147 @@ module internal Utils =
             (env :> IProvider).Cache.Swap()
             element
 
+open Content
+
 [<Tests>]
 let tests =
     testList "renders" [
-        test "single ordinal collection" {
-            let rendersContent = Env() |> mkRender |> layoutEquals
+        test "single ordinal text collection" {
+            let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
 
-            "content with no mutations" |> rendersContent
-                (div [] [
+            rendersContent "with no mutations"
+             <| div [] [
                     text [] "foo"
                     text [] "bar"
-                ])
-                [ Content.Text "foo", 0
-                  Content.Text "bar", 0
+                ]
+             <| div' 0 [
+                    text' 0 "foo"
+                    text' 0 "bar"
                 ]
 
-            "content is unchanged and no mutations" |> rendersContent
-                (div [] [
+            rendersContent "content is unchanged and no mutations"
+             <| div [] [
                     text [] "foo"
                     text [] "bar"
-                ])
-                [ Content.Text "foo", 0
-                  Content.Text "bar", 0 ]
+                ]
+             <| div' 0 [ 
+                    text' 0 "foo"
+                    text' 0 "bar"
+                ]
 
-            "first text changed" |> rendersContent
-                (div [] [
+            rendersContent "first text changed"
+             <| div [] [
                     text [] "foofoo"
                     text [] "bar"
-                ])
-                [ Content.Text "foofoo", 1
-                  Content.Text "bar", 0 ]
+                ]
+             <| div' 0 [
+                    text' 1 "foofoo"
+                    text' 0 "bar"
+                ]
 
-            "second text changed" |> rendersContent
-                (div [] [
+            rendersContent "second text changed"
+             <| div [] [
                     text [] "foofoo"
                     text [] "barbar"
-                ])
-                [ Content.Text "foofoo", 1
-                  Content.Text "barbar", 1 ]
+                ]
+             <| div' 0 [
+                    text' 1 "foofoo"
+                    text' 1 "barbar"
+                ]
 
-            "text element added" |> rendersContent
-                (div [] [
+            rendersContent "text element added"
+             <| div [] [
                     text [] "foofoo"
                     text [] "barbar"
                     text [] "baz"
-                ])
-                [ Content.Text "foofoo", 1
-                  Content.Text "barbar", 1
-                  Content.Text "baz"   , 0 ]
+                ]
+             <| div' 1 [
+                    text' 1 "foofoo"
+                    text' 1 "barbar"
+                    text' 0 "baz"   
+                ]
 
-            "text element changed" |> rendersContent
-                (div [] [
+            rendersContent "text element changed"
+             <| div [] [
                     text [] "foofoo"
                     text [] "barbar"
                     text [] "bazbaz"
-                ])
-                [ Content.Text "foofoo", 1
-                  Content.Text "barbar", 1
-                  Content.Text "bazbaz", 1 ]
+                ]
+             <| div' 1 [
+                    text' 1 "foofoo"
+                    text' 1 "barbar"
+                    text' 1 "bazbaz"
+                ]
 
-            "text element removed" |> rendersContent
-                (div [] [
+            rendersContent "text element removed"
+             <| div [] [
                     text [] "barbar"
                     text [] "bazbaz"
-                ])
-                [ Content.Text "barbar", 2
-                  Content.Text "bazbaz", 2 ]
+                ]
+             <| div' 2 [
+                    text' 2 "barbar"
+                    text' 2 "bazbaz"
+                ]
+        }
+
+        test "single mixed text collection" {
+            let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
+
+            rendersContent "with string key"
+             <| div [] [
+                    at "foo" (text [] "foo")
+                    text [] "bar"
+                ]
+             <| div' 0 [
+                    text' 0 "foo"
+                    text' 0 "bar"
+                ]
+
+            rendersContent "reordered string key changes insertion order but doesn't mutate"
+             <| div [] [
+                    text [] "bar"
+                    at "foo"  <| text [] "foo"
+                ]
+             <| div' 1 [
+                  text' 0 "bar"
+                  text' 0 "foo"
+                ]
+
+            rendersContent "changing string keyed element and reordered"
+             <| div [] [
+                    at "foo" (text [] "foofoo")
+                    text [] "bar"
+                ]
+             <| div' 2 [
+                  text' 1 "foofoo"
+                  text' 0 "bar"
+                ]
+
+            rendersContent "mutating keyed element when re-ordered"
+             <| div [] [
+                    text [] "bar"
+                    at "foo" (text [] "foofoofoo")
+                ]
+             <| div' 3 [
+                    text' 0 "bar"
+                    text' 2 "foofoofoo"
+                ]
+        }
+
+        test "nested collections" {
+            let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
+            
+            rendersContent "with one nested text"
+             <| div [] [
+                    div [] [
+                        text [] "foo"
+                    ]
+                ]
+             <| div' 0 [
+                    div' 0 [
+                        text' 0 "foo"
+                    ]
+                ]
         }
     ]
 
