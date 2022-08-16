@@ -186,12 +186,28 @@ let tests =
 
             let click2 = fun () -> ()
 
-            rendersContent "updating button handler"
+            rendersContent "updating button handler without updating key makes no changes"
              <| div [] [
                     text [] "foo"
                     button []
                         ( text [] "click"
                         , does ("click", click2)
+                        )
+                ]
+             <| div' 0 [
+                    text' 0 "foo"
+                    button' 0
+                        ( text' 0 "click"
+                        , click
+                        )
+                ]
+
+            rendersContent "updating button handler key updates the handler"
+             <| div [] [
+                    text [] "foo"
+                    button []
+                        ( text [] "click"
+                        , does ("click2", click2)
                         )
                 ]
              <| div' 0 [
