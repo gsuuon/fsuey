@@ -29,6 +29,7 @@ type Env() as this =
             }
 
     member val NewTexts = 0 with get, set
+    member val NewButtons = 0 with get, set
     member val NewContainers = 0 with get, set
 
     interface IProvider with
@@ -41,6 +42,28 @@ type Env() as this =
                     this.NewTexts <- this.NewTexts + 1
                     Text data
                 update = fun _ data visual -> visual.Body <- data; visual
+            }
+
+    interface IButton<Prop, Visual * Keyed<string, (unit -> unit)>, Visual> with
+        member val Button =
+            mkElement {
+                create = fun _ (child, Keyed (_, action) ) ->
+                    this.NewButtons <- this.NewButtons + 1
+                    Button (child,  action)
+
+                update = fun last (child, keyedAction) visual ->
+                    // Unfortunately since we shove everything into data, we don't know
+                    // if action or child changed
+                    let (child', keyedAction') = last
+
+                    if child' <> child then
+                        visual.Child <- child
+
+                    if keyedAction' <> keyedAction then
+                        let (Keyed (_, action) ) = keyedAction
+                        visual.Action <- action
+
+                    visual
             }
 
     interface IContainer<Prop, Visual> with

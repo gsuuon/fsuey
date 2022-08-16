@@ -81,10 +81,18 @@ module Content =
         | Item of Content * 'T
         | Items of List<ContentAdd<'T> > * 'T
 
+    let buttonItem getChild x (button: Button) =
+        Items
+            ([getChild button.Child
+              Item (Content.Action button.Action, x) ]
+            , x)
+        
     let rec getContentAddChanges (x: Visual) =
         match x with
         | :? Collection as collection ->
             Items (collection.Children |> List.map getContentAddChanges, collection.Changes)
+        | :? Button as button ->
+            button |> buttonItem getContentAddChanges (button.Changes)
         | _ ->
             Item (x.Content, x.Changes)
 
@@ -92,9 +100,15 @@ module Content =
         match x with
         | :? Collection as collection ->
             Items (collection.Children |> List.map getContentAddLogs, collection.MutationLog)
+        | :? Button as button ->
+            button |> buttonItem getContentAddLogs (button.MutationLog)
         | _ ->
             Item (x.Content, x.MutationLog)
 
     let div' x xs  = Items (xs, x)
     let text' x str = Item (Content.Text str, x)
-    let button' x handlerObj = Item (Content.Action handlerObj, x)
+    let button' x (child, handlerObj) =
+        Items ([
+            child
+            Item (Content.Action handlerObj, x)
+        ], x)
