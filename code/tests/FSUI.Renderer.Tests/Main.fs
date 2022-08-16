@@ -1,60 +1,14 @@
-module FSUI.Renderer.Tests
+module FSUI.Renderer.Tests.Main
 
 open Expecto
 open Expecto.Expect
 
-open FSUI.Types
-open FSUI.Renderer.Provider
 open FSUI.Test.Provider
-open FSUI.Test.Host
+open FSUI.Test.Host.Content
 open FSUI.Elements.Views
-open FSUI.Renderer.Element
 
+open FSUI.Renderer.Tests.TestingUtils
 
-[<AutoOpen>]
-module internal Utils =
-    open System
-    open System.Diagnostics
-    open Swensen.Unquote.Assertions
-    open Swensen.Unquote.Operators
-
-    let chopLast (xs: 'a list) =
-        xs[..xs.Length - 2]
-
-    [<StackTraceHidden>]
-    let that msg expr =
-        try 
-            test expr
-        with
-        | _ ->
-            let reduction = // TODO colors?
-                expr
-                 |> reduceFully
-                 |> chopLast
-                 |> List.map decompile
-
-            raise <| Expecto.AssertException (msg :: reduction |> String.concat "\n")
-            
-    let mutations (x: Visual) = x.MutationLog.Length
-
-    let contentMutations<'T when 'T :> Visual> (x: 'T) =
-        x.Content, x.MutationLog.Length
-
-    let children (v: Visual) = (v :?> Collection).Children
-
-    [<StackTraceHidden>]
-    let layoutEquals getContent render  =
-        fun msg layout contents ->
-            let (renderedContents: Visual) = render layout
-            equal (getContent renderedContents) contents msg
-    
-    let mkRender env =
-        fun layout ->
-            let element = layout env Root
-            (env :> IProvider).Cache.Swap()
-            element
-
-open Content
 
 [<Tests>]
 let tests =

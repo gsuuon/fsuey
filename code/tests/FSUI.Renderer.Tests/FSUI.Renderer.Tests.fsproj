@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="TestingUtils.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 
