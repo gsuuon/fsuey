@@ -1,6 +1,7 @@
 module FSUI.Renderer.Tests
 
 open Expecto
+open Expecto.Expect
 
 open FSUI.Types
 open FSUI.Renderer.Provider
@@ -10,14 +11,8 @@ open FSUI.Elements.Views
 open FSUI.Renderer.Element
 
 
-type Model =
-    { name : string
-    }
-
-let pos = Root
-let env = Env()
-
-module Utils =
+[<AutoOpen>]
+module internal Utils =
     open System
     open System.Diagnostics
     open Swensen.Unquote.Assertions
@@ -42,76 +37,90 @@ module Utils =
             
     let mutations (x: Visual) = x.MutationLog.Length
 
-module TestView =
-    open Utils
+    let contentMutations<'T when 'T :> Visual> (x: 'T) =
+        x.Content, x.MutationLog.Length
 
-    open Expecto.Expect
+    let children (v: Visual) = (v :?> Collection).Children
 
-    [<Tests>]
-    let scratch =
-        test "basic" {
-            that "it renders build items" <@ 1 + 2 = 1 @>
-            // "render builds items" |> equal (1+2) 1
+    let layoutEquals render  =
+        fun layout contents msg ->
+            let collection = render layout
+            let childContentMutationCounts = collection |> children |> List.map contentMutations
+            equal childContentMutationCounts contents msg
+    
+    let mkRender env =
+        fun layout ->
+            let element = layout env Root
+            (env :> IProvider).Cache.Swap()
+            element
+
+[<Tests>]
+let tests =
+    testList "renders" [
+        test "single ordinal collection" {
+            let rendersContent = Env() |> mkRender |> layoutEquals
+
+            "content with no mutations"
+             |> rendersContent
+                (div [] [
+                    text [] "foo"
+                    text [] "bar"
+                ])
+                [ Content.Text "foo", 0
+                  Content.Text "bar", 0
+                ]
+
+            "content is unchanged and no mutations"
+             |> rendersContent
+                (div [] [
+                    text [] "foo"
+                    text [] "bar"
+                ])
+                [ Content.Text "foo", 0
+                  Content.Text "bar", 0 ]
+
+            "first text changed"
+             |> rendersContent
+                (div [] [
+                    text [] "foofoo"
+                    text [] "bar"
+                ])
+                [ Content.Text "foofoo", 1
+                  Content.Text "bar", 0 ]
+
+            "second text changed"
+             |> rendersContent
+                (div [] [
+                    text [] "foofoo"
+                    text [] "barbar"
+                ])
+                [ Content.Text "foofoo", 1
+                  Content.Text "barbar", 1 ]
+
+            "text element added"
+             |> rendersContent
+                (div [] [
+                    text [] "foofoo"
+                    text [] "barbar"
+                    text [] "baz"
+                ])
+                [ Content.Text "foofoo", 1
+                  Content.Text "barbar", 1
+                  Content.Text "baz"   , 0 ]
+
+            "text element changed"
+             |> rendersContent
+                (div [] [
+                    text [] "foofoo"
+                    text [] "barbar"
+                    text [] "bazbaz"
+                ])
+                [ Content.Text "foofoo", 1
+                  Content.Text "barbar", 1
+                  Content.Text "bazbaz", 1 ]
         }
+    ]
 
-
-    [<Tests>]
-    let tests =
-        let view model =
-            div [] [
-                text [] "Hi"
-                text [] model.name
-            ]
-
-        let model =
-            {
-                name = "foo"
-            }
-
-        let rootElement = view model env pos
-
-        let swap (provider: #IProvider) = provider.Cache.Swap()
-        let children (v: Visual) = (v :?> Collection).Children
-
-        let failsChildren elName =
-            Tests.failtest (sprintf "%s contains wrong number or type of children" elName)
-
-        testList "Basic view" [
-            // FIXME tests should generally be independent or in a testSequenced
-            test "first render" {
-                match children rootElement with
-                | [ :? Text as text1 
-                    :? Text as text2
-                  ] ->
-                    "no mutations in text1" |> equal (mutations text1) 0
-                    "no mutations in text2" |> equal (mutations text2) 0
-
-                | _ ->
-                    failsChildren "Root"
-            }
-
-            test "second render, no changes" {
-                swap env
-                match view model env pos |> children with
-                | [ :? Text as text1
-                    :? Text as text2
-                  ] ->
-                    "no mutations in text1" |> equal (mutations text1) 0
-                    "no mutations in text2" |> equal (mutations text2) 0
-                | _ ->
-                    failsChildren "Root"
-
-            }
-        ]
-
-module TestRenderer =
-    open FSUI.Elements.Views
-
-    type Msg =
-        | Click
-
-    let view model dispatch =
-        div [] [] // TODO
 
 [<EntryPoint>]
 let main argv =
