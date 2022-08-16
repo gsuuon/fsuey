@@ -12,7 +12,7 @@ type Prop =
     | Class of string
 
 type TestElement<'p, 'd, 'v> =
-    { create : 'p collection -> 'd -> 'v
+    { create : 'd -> 'v
       update : 'd -> 'd -> 'v -> 'v
     }
 
@@ -23,9 +23,18 @@ type Env() as this =
         Element.create
             (fun x -> x :> Visual)
             (swappers.Create ignore)
-            { change = fun props visual -> visual // TODO
+            { change = fun props visual ->
+                for Class prop in props.created do
+                    visual.AddClass prop
+                for Class prop in props.removed do
+                    visual.RemoveClass prop
+                visual
               update = element.update
-              create = element.create
+              create = fun props data ->
+                let el = element.create data
+                for Class prop in props do
+                    el.AddClass prop
+                el
             }
 
     member val NewTexts = 0 with get, set
@@ -38,16 +47,18 @@ type Env() as this =
     interface IText<Prop, Visual> with
         member val Text =
             mkElement {
-                create = fun _ data ->
+                create = fun data ->
                     this.NewTexts <- this.NewTexts + 1
                     Text data
-                update = fun _ data visual -> visual.Body <- data; visual
+                update = fun _ data visual ->
+                    visual.Body <- data
+                    visual
             }
 
     interface IButton<Prop, Visual * Keyed<string, (unit -> unit)>, Visual> with
         member val Button =
             mkElement {
-                create = fun _ (child, Keyed (_, action) ) ->
+                create = fun (child, Keyed (_, action) ) ->
                     this.NewButtons <- this.NewButtons + 1
                     Button (child,  action)
 
@@ -69,7 +80,7 @@ type Env() as this =
     interface IContainer<Prop, Visual> with
         member val Container =
             mkElement {
-                create = fun _ data ->
+                create = fun data ->
                     this.NewContainers <- this.NewContainers + 1
                     Collection data
                 update = fun _ data visual -> visual.Children <- data; visual

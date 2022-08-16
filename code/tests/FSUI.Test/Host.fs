@@ -18,8 +18,13 @@ and Visual() = // TODO do log created
     member val MutationLog = [] with get, set
     member this.AddLog (x: Mutation) =
         this.MutationLog <- x :: this.MutationLog
-
     member this.Changes = this.MutationLog.Length
+
+    member val ClassNames : Set<string> = Set.empty with get, set
+    member this.AddClass name =
+        this.ClassNames <- this.ClassNames.Add name
+    member this.RemoveClass name =
+        this.ClassNames <- this.ClassNames.Remove name
 
     abstract Content : Content
     default _.Content = Content.None
