@@ -92,23 +92,18 @@ module Content =
               Item (Content.Action button.Action, x) ]
             , x)
         
-    let rec getContentAddChanges (x: Visual) =
+    let rec getContentAdd (getData: Visual -> 'a) (x: Visual) =
         match x with
         | :? Collection as collection ->
-            Items (collection.Children |> List.map getContentAddChanges, collection.Changes)
+            Items (collection.Children |> List.map (getContentAdd getData), getData collection)
         | :? Button as button ->
-            button |> buttonItem getContentAddChanges (button.Changes)
+            button |> buttonItem (getContentAdd getData) (getData button)
         | _ ->
-            Item (x.Content, x.Changes)
+            Item (x.Content, getData x)
 
-    let rec getContentAddLogs (x: Visual) =
-        match x with
-        | :? Collection as collection ->
-            Items (collection.Children |> List.map getContentAddLogs, collection.MutationLog)
-        | :? Button as button ->
-            button |> buttonItem getContentAddLogs (button.MutationLog)
-        | _ ->
-            Item (x.Content, x.MutationLog)
+    let getContentAddChanges x = getContentAdd (fun v -> v.Changes) x
+    let getContentAddLogs x = getContentAdd (fun v -> v.MutationLog) x
+    let getContentAddClasses x = getContentAdd (fun v -> v.ClassNames) x
 
     let div' x xs  = Items (xs, x)
     let text' x str = Item (Content.Text str, x)
