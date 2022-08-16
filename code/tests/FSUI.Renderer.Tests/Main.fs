@@ -137,7 +137,7 @@ let tests =
                 ]
         }
 
-        test "single mixed text collection" {
+        test "single ordinal and nominal text collection" {
             let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
 
             rendersContent "with string key"
@@ -181,7 +181,7 @@ let tests =
                 ]
         }
 
-        test "nested collections" {
+        test "nested collections of text" {
             let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
             
             rendersContent "with one nested text"
@@ -194,6 +194,74 @@ let tests =
                     div' 0 [
                         text' 0 "foo"
                     ]
+                ]
+
+            rendersContent "changing nested text"
+             <| div [] [
+                    div [] [
+                        text [] "foofoo"
+                    ]
+                ]
+             <| div' 0 [
+                    div' 0 [
+                        text' 1 "foofoo"
+                    ]
+                ]
+        }
+
+        test "single ordinal mixed collection" {
+            let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
+
+            let click = fun () -> ()
+
+            rendersContent "with different elements"
+             <| div [] [
+                    text [] "foo"
+                    button []
+                        ( text [] "click"
+                        , does ("click", click)
+                        )
+                ]
+             <| div' 0 [
+                    text' 0 "foo"
+                    button' 0
+                        ( text' 0 "click"
+                        , click
+                        )
+                ]
+
+            let click2 = fun () -> ()
+
+            rendersContent "updating button handler"
+             <| div [] [
+                    text [] "foo"
+                    button []
+                        ( text [] "click"
+                        , does ("click", click2)
+                        )
+                ]
+             <| div' 0 [
+                    text' 0 "foo"
+                    button' 1
+                        ( text' 0 "click"
+                        , click2
+                        )
+                ]
+
+            rendersContent "updating button child"
+             <| div [] [
+                    text [] "foo"
+                    button []
+                        ( text [] "click here"
+                        , does ("click", click2)
+                        )
+                ]
+             <| div' 0 [
+                    text' 0 "foo"
+                    button' 2
+                        ( text' 1 "click here"
+                        , click2
+                        )
                 ]
         }
     ]
