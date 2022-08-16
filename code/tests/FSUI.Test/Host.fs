@@ -2,7 +2,15 @@ namespace FSUI.Test.Host
 
 // TODO this is probably unecessary, track in Provider instead
 // though this is more accurate -- counting in provider could miss bugs
-type Mutation =
+// TODO Revisit this approach
+[<RequireQualifiedAccess>]
+type Content = 
+    | None
+    | Text of string
+    | Action of obj // physical equality
+    | Children of Visual list
+
+and Mutation =
     | SetValue of name: string * value: string
     | SetAction of name: string * fn: (unit -> unit)
     | AddChild of idx: int * child: Visual
@@ -12,16 +20,21 @@ and Visual() = // TODO do log created
     member this.AddLog (x: Mutation) =
         this.MutationLog <- x :: this.MutationLog
 
-type Text(content: string) =
+    abstract Content : Content
+    default _.Content = Content.None
+
+type Text(body: string) =
     inherit Visual()
 
-    let mutable content = content
-    member this.Content
+    let mutable body = body
+    member this.Body
         with get() =
-            content
+            body
         and set x =
-            this.AddLog (SetValue ("Content", x) )
-            content <- x
+            this.AddLog (SetValue ("Body", x) )
+            body <- x
+
+    override _.Content = Content.Text body
 
 type Button(child: Visual, action: unit -> unit) =
     inherit Visual()
@@ -40,6 +53,8 @@ type Button(child: Visual, action: unit -> unit) =
         and set x =     
             this.AddLog (AddChild (0, child) )
             child <- x
+    
+    override _.Content = Content.Action action
 
 type Collection(children: Visual list) =
     inherit Visual()
@@ -54,3 +69,5 @@ type Collection(children: Visual list) =
                 xs
 
             children <- xs
+
+    override _.Content = Content.Children children

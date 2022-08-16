@@ -40,7 +40,7 @@ type Env() as this =
                 create = fun _ data ->
                     this.NewTexts <- this.NewTexts + 1
                     Text data
-                update = fun _ data visual -> visual.Content <- data; visual
+                update = fun _ data visual -> visual.Body <- data; visual
             }
 
     interface IContainer<Prop, Visual> with
