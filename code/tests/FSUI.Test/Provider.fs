@@ -16,7 +16,7 @@ type TestElement<'p, 'd, 'v> =
       update : 'd -> 'd -> 'v -> 'v
     }
 
-type Env() =
+type Env() as this =
     let swappers = Swappers()
 
     let mkElement (element: TestElement<_,_,_>) =
@@ -28,19 +28,26 @@ type Env() =
               create = element.create
             }
 
+    member val NewTexts = 0 with get, set
+    member val NewContainers = 0 with get, set
+
     interface IProvider with
         member _.Cache = swappers
 
     interface IText<Prop, Visual> with
         member val Text =
             mkElement {
-                create = fun _ data -> Text data
+                create = fun _ data ->
+                    this.NewTexts <- this.NewTexts + 1
+                    Text data
                 update = fun _ data visual -> visual.Content <- data; visual
             }
 
     interface IContainer<Prop, Visual> with
         member val Container =
             mkElement {
-                create = fun _ data -> Collection data
+                create = fun _ data ->
+                    this.NewContainers <- this.NewContainers + 1
+                    Collection data
                 update = fun _ data visual -> visual.Children <- data; visual
             }

@@ -1,11 +1,13 @@
 namespace FSUI.Test.Host
 
+// TODO this is probably unecessary, track in Provider instead
+// though this is more accurate -- counting in provider could miss bugs
 type Mutation =
     | SetValue of name: string * value: string
     | SetAction of name: string * fn: (unit -> unit)
     | AddChild of idx: int * child: Visual
 
-and Visual() =
+and Visual() = // TODO do log created
     member val MutationLog = [] with get, set
     member this.AddLog (x: Mutation) =
         this.MutationLog <- x :: this.MutationLog
