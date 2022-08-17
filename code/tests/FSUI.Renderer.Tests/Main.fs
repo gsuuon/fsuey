@@ -11,8 +11,8 @@ open FSUI.Renderer.Tests.TestingUtils
 
 
 [<Tests>]
-let tests =
-    testList "renders" [
+let testsData =
+    testList "renders data" [
         test "single ordinal text collection" {
             let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
 
@@ -233,6 +233,26 @@ let tests =
                         , click2
                         )
                 ]
+        }
+    ]
+
+[<Tests>]
+let testsProps =
+    testList "renders props" [
+        test "single text element" {
+            let rendersContent = Env() |> mkRender |> layoutEquals getContentAddClasses
+
+            rendersContent "with props"
+             <| text [Class "foo"] "bar"
+             <| text' (Set ["foo"]) "bar"
+
+            rendersContent "changing props"
+             <| text [Class "baz"] "bar"
+             <| text' (Set ["baz"]) "bar"
+
+            rendersContent "adding props"
+             <| text [Class "Floop"] "bar"
+             <| text' (Set ["baz"]) "bar"
         }
     ]
 
