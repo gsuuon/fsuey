@@ -31,8 +31,8 @@ type SimpleBenchmark () =
         ]
 
     let viewHand model =
-        VisualCollection [
-            VisualText $"Hi {model.name}"
+        Collection [
+            Text $"Hi {model.name}"
         ]
 
     [<Benchmark(Baseline=true)>]
@@ -67,15 +67,15 @@ type MediumBenchmark () =
         view model env pos
 
     let viewHand model =
-        VisualCollection [
-            VisualText "Title"
-            VisualCollection [
-                VisualText "Subheader"
-                VisualCollection [ // TODO 
+        Collection [
+            Text "Title"
+            Collection [
+                Text "Subheader"
+                Collection [ // TODO 
                 ]
-                VisualText $"Hi {model.name}"
+                Text $"Hi {model.name}"
             ]
-            VisualText "Footer"
+            Text "Footer"
         ]
 
     [<Benchmark(Baseline=true)>]
