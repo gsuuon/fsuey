@@ -18,8 +18,8 @@ and Content =
 
 and Visual() = // TODO do log created
     member val MutationLog = [] with get, set
-    member this.AddLog (x: Mutation) =
-        this.MutationLog <- x :: this.MutationLog
+    member this.AddLog (x: Mutation) = // TODO better append structure
+        this.MutationLog <- this.MutationLog @ [x]
     member this.Changes = this.MutationLog.Length
 
     member val ClassNames : Set<string> = Set.empty with get, set
