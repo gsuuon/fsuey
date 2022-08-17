@@ -24,10 +24,10 @@ type Env() as this =
             (fun x -> x :> Visual)
             (swappers.Create ignore)
             { change = fun props visual ->
-                for Class prop in props.created do
-                    visual.AddClass prop
                 for Class prop in props.removed do
                     visual.RemoveClass prop
+                for Class prop in props.created do
+                    visual.AddClass prop
                 visual
               update = element.update
               create = fun props data ->
