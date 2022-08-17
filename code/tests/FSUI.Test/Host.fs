@@ -7,6 +7,8 @@ type Mutation =
     | SetValue of name: string * value: string
     | SetAction of name: string * fn: obj
     | AddChildren of children: Visual list
+    | AddClass of name: string
+    | RemoveClass of name: string
 
 and Content = 
     | None
@@ -22,8 +24,10 @@ and Visual() = // TODO do log created
 
     member val ClassNames : Set<string> = Set.empty with get, set
     member this.AddClass name =
+        this.AddLog (AddClass name)
         this.ClassNames <- this.ClassNames.Add name
     member this.RemoveClass name =
+        this.AddLog (RemoveClass name)
         this.ClassNames <- this.ClassNames.Remove name
 
     abstract Content : Content
