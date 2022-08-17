@@ -251,8 +251,8 @@ let testsProps =
              <| text' (Set ["baz"]) "bar"
 
             rendersContent "adding props"
-             <| text [Class "Floop"] "bar"
-             <| text' (Set ["baz"]) "bar"
+             <| text [Class "baz"; Class "quix"] "bar"
+             <| text' (Set ["baz"; "quix"]) "bar"
         }
     ]
 

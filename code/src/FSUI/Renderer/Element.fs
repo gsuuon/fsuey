@@ -16,7 +16,7 @@ type ElementRecord<'p, 'd, 'v> =
         member this.Update lastData thisData visual = this.update lastData thisData visual
 
 [<AutoOpen>]
-module Util =
+module private Util =
     let inline gate pred fn v =
         if pred then fn v else v
 
@@ -30,7 +30,7 @@ module Util =
             cache.Fresh.Add (pos, (props, data, visual) )
         with
         | :? System.ArgumentException -> // TODO Is an element existing in Fresh at this position an error?
-            System.Console.Error.WriteLine ("Fresh cache already contained an element at " + pos.ToString())
+            eprintfn "Fresh cache already contained an element at %s" (string pos)
         visual
 
 let create<'prop, 'data, 'visual, 'node, 'element
