@@ -4,6 +4,7 @@ open Expecto
 open Expecto.Expect
 
 open FSUI.Test.Provider
+open FSUI.Test.Host
 open FSUI.Test.Host.Content
 open FSUI.Elements.Views
 
@@ -243,16 +244,46 @@ let testsProps =
             let rendersContent = Env() |> mkRender |> layoutEquals getContentAddClasses
 
             rendersContent "with props"
-             <| text [Class "foo"] "bar"
-             <| text' (Set ["foo"]) "bar"
+             <| text [Class "foo"] "bird"
+             <| text' (Set ["foo"]) "bird"
 
             rendersContent "changing props"
-             <| text [Class "baz"] "bar"
-             <| text' (Set ["baz"]) "bar"
+             <| text [Class "bar"] "bird"
+             <| text' (Set ["bar"]) "bird"
 
             rendersContent "adding props"
-             <| text [Class "baz"; Class "quix"] "bar"
-             <| text' (Set ["baz"; "quix"]) "bar"
+             <| text [Class "bar"; Class "baz"] "bird"
+             <| text' (Set ["bar"; "baz"]) "bird"
+        }
+
+        test "single text element prop mutations" {
+            let rendersContent = Env() |> mkRender |> layoutEquals (getContentAdd (fun v -> v.MutationLog, v.ClassNames ) )
+
+            rendersContent "with props"
+             <| text [Class "foo"] "bird"
+             <| text'
+                  ([AddClass "foo"]
+                  , Set ["foo"])
+                  "bird"
+
+            rendersContent "changing props"
+             <| text [Class "bar"] "bird"
+             <| text'
+                  ([AddClass "foo"
+                    RemoveClass "foo"
+                    AddClass "bar"]
+                  , Set ["bar"])
+                  "bird"
+
+            rendersContent "adding props"
+             <| text [Class "bar"; Class "baz"] "bird"
+             <| text'
+                  ([AddClass "foo"
+                    RemoveClass "foo"
+                    AddClass "bar"
+                    AddClass "baz"]
+                  , Set ["bar"; "baz"])
+                  "bird"
         }
     ]
 
