@@ -106,25 +106,24 @@ module Cases =
 // #time "on"
 // for _ = 0 to 100000 do
 //     difference
-//         ( [ Foo 0
-//             Foo 1
-//             Foo 5
-//             Foo 4
-//             Foo 3
-//             Bar "b"
-//             Bar "d"
-//           ]
-//         , [ Foo 2
-//             Foo 4
-//             Bar "a"
-//             Bar "b"
-//             Bar "c"
-//             Bar "d"
-//             Foo 7
-//             Foo 6
-//             Foo 3
-//           ]
-//         )
+//         [ Foo 0
+//           Foo 1
+//           Foo 5
+//           Foo 4
+//           Foo 3
+//           Bar "b"
+//           Bar "d"
+//         ]
+//         [ Foo 2
+//           Foo 4
+//           Bar "a"
+//           Bar "b"
+//           Bar "c"
+//           Bar "d"
+//           Foo 7
+//           Foo 6
+//           Foo 3
+//         ]
 //      |> ignore
 // #time "off"
 
