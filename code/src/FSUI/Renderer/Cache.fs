@@ -1,5 +1,6 @@
 namespace FSUI.Renderer.Cache
 
+open FSUI.Types
 open System.Collections.Generic
 
 type ISwapper =
@@ -39,5 +40,6 @@ type Swappers() =
         collection <- (swap :> ISwapper) :: collection
         swap
 
-    member _.Swap () =
-        collection |> List.iter (fun swapper -> swapper.Swap())
+    interface IProviderState with
+        member _.Tick () =
+            collection |> List.iter (fun swapper -> swapper.Swap())
