@@ -15,7 +15,8 @@ open FSUI.Renderer.Tests.TestingUtils
 let testsData =
     testList "renders data" [
         test "single ordinal text collection" {
-            let rendersContent = Env() |> mkRender |> layoutEquals getContentAddChanges
+            let env = Env()
+            let rendersContent = env |> mkRender |> layoutEquals getContentAddChanges
 
             rendersContent "with no mutations"
              <| div [] [
@@ -37,6 +38,12 @@ let testsData =
                     text' 0 "bar"
                 ]
 
+            "No new divs or texts were created" |> equal
+                [ env.NewContainers
+                  env.NewTexts ]
+                [ 1
+                  2 ]
+
             rendersContent "first text changed"
              <| div [] [
                     text [] "foofoo"
@@ -57,6 +64,12 @@ let testsData =
                     text' 1 "barbar"
                 ]
 
+            "No new divs or texts were created" |> equal
+                [ env.NewContainers
+                  env.NewTexts ]
+                [ 1
+                  2 ]
+
             rendersContent "text element added"
              <| div [] [
                     text [] "foofoo"
@@ -68,6 +81,12 @@ let testsData =
                     text' 1 "barbar"
                     text' 0 "baz"   
                 ]
+
+            "One new text was created" |> equal
+                [ env.NewContainers
+                  env.NewTexts ]
+                [ 1
+                  3 ]
 
             rendersContent "text element changed"
              <| div [] [
@@ -81,6 +100,12 @@ let testsData =
                     text' 1 "bazbaz"
                 ]
 
+            "No new divs or texts were created" |> equal
+                [ env.NewContainers
+                  env.NewTexts ]
+                [ 1
+                  3 ]
+
             rendersContent "text element removed"
              <| div [] [
                     text [] "barbar"
@@ -90,6 +115,12 @@ let testsData =
                     text' 2 "barbar"
                     text' 2 "bazbaz"
                 ]
+
+            "No new divs or texts were created" |> equal
+                [ env.NewContainers
+                  env.NewTexts ]
+                [ 1
+                  3 ]
         }
 
         test "single ordinal and nominal text collection" {

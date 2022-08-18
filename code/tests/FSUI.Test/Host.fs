@@ -1,8 +1,5 @@
 namespace FSUI.Test.Host
 
-// TODO this is probably unecessary, track in Provider instead
-// though this is more accurate -- counting in provider could miss bugs
-// TODO Revisit this approach
 type Mutation =
     | SetValue of name: string * value: string
     | SetAction of name: string * fn: obj
@@ -16,7 +13,7 @@ and Content =
     | Action of obj // physical equality
     | Children of Content list
 
-and Visual() = // TODO do log created
+and Visual() =
     member val MutationLog = [] with get, set
     member this.AddLog (x: Mutation) = // TODO better append structure
         this.MutationLog <- this.MutationLog @ [x]
