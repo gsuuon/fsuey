@@ -21,8 +21,6 @@ let (=^) (resultsA: Option<Changes<'T>>) (resultsB: Option<Changes<'T>>) =
     | _ -> false
 
 module Ints =
-    let x = difference [ 1; 2 ] [ 0; 1; 3 ]
-        
     that "removed and created are computed"
         <@ difference
             [ 1; 2 ]
