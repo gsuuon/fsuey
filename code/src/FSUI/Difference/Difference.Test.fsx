@@ -1,5 +1,5 @@
-#load "../TestReferences.fsx"
-open TestReferences
+#load "../../utilsTest.fsx"
+open UtilsTest
 
 #load "../Types/Element.fs"
 open FSUI.Types

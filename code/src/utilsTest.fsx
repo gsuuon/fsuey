@@ -4,17 +4,17 @@ open System
 open Swensen.Unquote
 open Swensen.Unquote.Operators
 
-module _State =
+module private State =
     let mutable testCount = 0
     let mutable hasErrored = false
 
 let that msg expr =
     try
         test expr
-        _State.testCount <- _State.testCount + 1
+        State.testCount <- State.testCount + 1
     with
     | :? Swensen.Unquote.AssertionFailedException as e ->
-        _State.hasErrored <- true
+        State.hasErrored <- true
         let lines = e.Message.Split '\n'
         let last = lines.Length - 2 // last is empty after \n
 
@@ -36,7 +36,7 @@ let that msg expr =
 let show msg expr =
     try
         test expr
-        _State.testCount <- _State.testCount + 1
+        State.testCount <- State.testCount + 1
         let reduction =
             expr
              |> reduceFully
@@ -49,7 +49,7 @@ let show msg expr =
         printfn "%s" reduction
     with
     | :? Swensen.Unquote.AssertionFailedException as e ->
-        _State.hasErrored <- true
+        State.hasErrored <- true
         let lines = e.Message.Split '\n'
         let last = lines.Length - 2 // last is empty after \n
 
@@ -68,10 +68,9 @@ let show msg expr =
                     eprintfn "%s" line
             )
 
-
 let exitCode () =
-    if _State.hasErrored then
+    if State.hasErrored then
         exit 1
     else
-        printfn "Passed %i tests" _State.testCount
+        printfn "Passed %i tests" State.testCount
         exit 0

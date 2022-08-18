@@ -1,5 +1,5 @@
-#load "./TestReferences.fsx"
-open TestReferences
+#load "../utilsTest.fsx"
+open UtilsTest
 
 /// Think of these as versioned functions which return their next version
 type State<'T, 'R> = State of ('T -> 'R * State<'T, 'R>)
