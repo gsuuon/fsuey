@@ -7,7 +7,6 @@ open Expecto.Expect
 
 open FSUI.Types
 open FSUI.Test.Host
-open FSUI.Renderer.Provider
 
 let chopLast (xs: 'a list) =
     xs[..xs.Length - 2]
@@ -35,5 +34,5 @@ let layoutEquals getContent render  =
 let mkRender env =
     fun layout ->
         let visual = layout env Root
-        (env :> IProvider).Cache.Swap()
+        (env :> IProvider).ProviderState.Tick()
         visual
