@@ -13,6 +13,99 @@ let pin (stateFn': State<_,_>) =
         stateFn <- next
         v
 
+module NestedStateMachine =
+    type IFinishes =
+        abstract Finished : bool option
+
+    type FooState =
+        | Forward of int
+        | Reverse of int
+        | Success
+        | Failure
+        interface IFinishes with
+            member this.Finished =
+                match this with
+                | Success -> Some true
+                | Failure -> Some false
+                | _ -> None
+
+    type FooAction =
+        | Increase
+        | Decrease
+
+    type BarState =
+        | A of FooState
+        | B of FooState
+
+    module Without =
+        let actionFoo =
+            function
+            | _, (Success as foo) | _, (Failure as foo) -> foo
+            | _, Forward x | _, Reverse x when x = 10   -> Success
+            | _, Forward x | _, Reverse x when x = 0    -> Failure
+
+            | Increase, Forward x -> Forward (x + 1)
+            | Increase, Reverse x -> Forward (x - 1)
+            | Decrease, Forward x -> Forward (x - 1)
+            | Decrease, Reverse x -> Forward (x + 1)
+            
+        let actionBar =
+            let on (x: #IFinishes) success failure lift =
+                match x.Finished with
+                | Some true -> success x
+                | Some false -> failure x
+                | _ -> lift x
+
+            function
+            | action, BarState.A foo ->
+                on (actionFoo (action, foo) )
+                 <| fun _ -> BarState.B (Reverse 5)
+                 <| fun _ -> BarState.A (Forward 5)
+                 <| BarState.A
+            | action, BarState.B foo ->
+                on (actionFoo (action, foo) )
+                 <| fun _ -> BarState.A (Forward 5)
+                 <| fun _ -> BarState.B (Reverse 5)
+                 <| BarState.B
+
+        let runBar (bar: BarState) =
+            let mutable state = bar
+            fun action ->
+                state <- actionBar (action, state)
+
+    module With =
+        let actFoo =
+            function
+            | _, (Success as foo) | _, (Failure as foo) -> foo
+            | _, Forward x | _, Reverse x when x = 10   -> Success
+            | _, Forward x | _, Reverse x when x = 0    -> Failure
+
+            | Increase, Forward x -> Forward (x + 1)
+            | Increase, Reverse x -> Forward (x - 1)
+            | Decrease, Forward x -> Forward (x - 1)
+            | Decrease, Reverse x -> Forward (x + 1)
+
+        let rec actBarA foo =
+            State <| fun action ->
+                let foo' = actFoo (action, foo)
+
+                foo',
+                match foo' with
+                | Success -> actBarB (Reverse 5)
+                | Failure -> actBarA (Forward 5)
+                | x       -> actBarA x
+        and actBarB foo =
+            State <| fun action ->
+                let foo' = actFoo (action, foo)
+
+                foo',
+                match foo' with
+                | Success -> actBarA (Forward 5)
+                | Failure -> actBarB (Reverse 5)
+                | x       -> actBarB x
+    
+        let runBarA (foo: FooState) = actBarA foo |> pin
+
 module DataChanges =
     let reverse =
         Seq.rev >> Seq.map string >> String.concat ""
