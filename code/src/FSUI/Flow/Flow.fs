@@ -105,6 +105,12 @@ type FlowBuilder() =
 
 module Flow =
     let asEnumerator (x: #IEnumerable) = x.GetEnumerator()
+    let asSeq (flow: Flow<_,_>) = // TODO?
+        let xs = asEnumerator flow
+        seq {
+            while xs.MoveNext() do
+                yield xs.Current
+        }
 
     let step =
         function
