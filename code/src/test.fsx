@@ -18,7 +18,7 @@ type TestPassFail =
 
 type TestResult =
     { passFail : TestPassFail
-      name   : string
+      name     : string
     }
 
 let wait (t: Task<_>) =
@@ -85,10 +85,15 @@ let printTestResult result =
         Console.ResetColor()
 
     match result with 
-    | {passFail = Passed; name = name } ->
+    | { passFail = Passed
+        name     = name }
+        ->
         printColor ConsoleColor.Green "Passed: "
         Console.WriteLine name
-    | {passFail = Failed errs; name = name } ->
+
+    | { passFail = Failed errs
+        name     = name }
+        ->
         printColor ConsoleColor.Red "Failed: "
         Console.WriteLine name
 
@@ -108,7 +113,7 @@ let testFailed x = Seq.exists (fun result -> result.passFail <> Passed) x
 let runTests () =
     findAllTestScripts ()
      |> Array.map runTest
-     |> Array.map (wait >> parseTestOutput >> printTestResult) // waits in order
+     |> Array.map (wait >> parseTestOutput >> printTestResult)
 
 if runTests() |> testFailed then
     exit 1
