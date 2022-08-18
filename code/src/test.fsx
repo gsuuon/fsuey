@@ -1,5 +1,3 @@
-// Run unit test scripts
-
 open System
 open System.Threading.Tasks
 open System.Diagnostics
@@ -26,12 +24,6 @@ type TestResult =
 let wait (t: Task<_>) =
     t.Wait()
     t.Result
-
-let map f t =
-    async {
-        let! x = t
-        return f x
-    }
 
 let readStreamLines (sr: StreamReader) =
     let removeEmptyLast (xs: string array) =
@@ -71,7 +63,7 @@ let runProcess dir (cmd: string) (args: string list) =
 let testName (testFullPath: string) = testFullPath.Replace(__SOURCE_DIRECTORY__, "")
 
 let runTest testPath =
-    printfn "Test: %s" (testName testPath)
+    printfn "Testing: %s" (testName testPath)
     runProcess __SOURCE_DIRECTORY__ "dotnet" ["fsi"; testPath]
 
 let parseTestOutput (output: ProcessOutput) =
@@ -108,12 +100,15 @@ let printTestResult result =
 let findAllTestScripts () =
     Directory.GetFiles (__SOURCE_DIRECTORY__, "*.Test.fsx", SearchOption.AllDirectories)
 
+let testFailed x = Seq.exists (fun result -> result.passFail <> Passed) x
+
+/// Run unit test scripts
+/// Finds and runs scripts matching *.Test.fsx
+/// Test scripts return an exit code 0 for success
 let runTests () =
     findAllTestScripts ()
      |> Array.map runTest
      |> Array.map (wait >> parseTestOutput >> printTestResult) // waits in order
-
-let testFailed x = Seq.exists (fun result -> result.passFail <> Passed) x
 
 if runTests() |> testFailed then
     exit 1
