@@ -4,7 +4,6 @@ open FSUI.Test.Host
 
 open FSUI.Types
 open FSUI.Renderer
-open FSUI.Renderer.Provider
 open FSUI.Renderer.Cache
 open FSUI.Elements.Interfaces
 
@@ -42,7 +41,7 @@ type Env() as this =
     member val NewContainers = 0 with get, set
 
     interface IProvider with
-        member _.Cache = swappers
+        member _.ProviderState = swappers
 
     interface IText<Prop, Visual> with
         member val Text =
