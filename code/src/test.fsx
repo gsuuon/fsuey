@@ -56,8 +56,8 @@ let runProcess dir (cmd: string) (args: string list) =
 
     let proc = Process.Start startInfo
 
-    async {
-        do! proc.WaitForExitAsync() |> Async.AwaitTask
+    task {
+        do! proc.WaitForExitAsync()
         return
             { out = proc.StandardOutput |> readStreamLines
               err = proc.StandardError |> readStreamLines
@@ -110,10 +110,8 @@ let findAllTestScripts () =
 
 let runTests () =
     findAllTestScripts ()
-     |> Seq.map runTest
-     |> Async.Parallel
-     |> Async.RunSynchronously
-     |> Seq.map (parseTestOutput >> printTestResult)
+     |> Array.map runTest
+     |> Array.map (wait >> parseTestOutput >> printTestResult) // waits in order
 
 let testFailed x = Seq.exists (fun result -> result.passFail <> Passed) x
 
