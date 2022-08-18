@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Types/Keyed.fs" />
     <Compile Include="Types/Element.fs" />
     <Compile Include="Difference/Difference.fs" />
     <Compile Include="Flow/Flow.fs" />

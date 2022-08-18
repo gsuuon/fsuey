@@ -32,3 +32,13 @@ type IElementRenderer<'prop, 'data, 'visual> =
     abstract Change: Changes<'prop> -> 'visual -> 'visual
     abstract Update: 'data -> 'data -> 'visual -> 'visual
 
+
+type ElementRenderer<'prop, 'data, 'visual> =
+    { create : 'prop collection -> 'data -> 'visual
+      change : Changes<'prop> -> 'visual -> 'visual
+      update : 'data -> 'data -> 'visual -> 'visual
+    }
+    interface IElementRenderer<'prop, 'data, 'visual> with
+        member this.Create props data = this.create props data
+        member this.Change props visual = this.change props visual
+        member this.Update data' data visual = this.update data' data visual

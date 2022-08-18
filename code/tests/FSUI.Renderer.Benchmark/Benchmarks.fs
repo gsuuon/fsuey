@@ -4,6 +4,7 @@ open System
 open BenchmarkDotNet
 open BenchmarkDotNet.Attributes
 
+open FSUI.Types
 open FSUI.Test.Provider
 open FSUI.Test.Host
 open FSUI.Elements.Views
@@ -14,7 +15,6 @@ let env = Env()
 
 type Model =
     { name : string
-      pic : string
     }
 
 [<ShortRunJob>]
@@ -23,19 +23,16 @@ type SimpleBenchmark () =
     let model =
         {
             name = "foo"
-            pic = "foo.webp"
         }
 
     let view model =
         div [] [
             text [] $"Hi {model.name}"
-            image [] model.pic
         ]
 
     let viewHand model =
-        VisualCollection [
-            VisualText $"Hi {model.name}"
-            VisualImage model.pic
+        Collection [
+            Text $"Hi {model.name}"
         ]
 
     [<Benchmark(Baseline=true)>]
@@ -52,7 +49,6 @@ type MediumBenchmark () =
     let model =
         {
             name = "foo"
-            pic = "foo.webp"
         }
 
     let viewFsui model =
@@ -61,8 +57,7 @@ type MediumBenchmark () =
                 text [] "Title"
                 div [] [
                     text [] "Subheader"
-                    div [] [
-                        image [] model.pic
+                    div [] [ // TODO 
                     ]
                     text [] $"Hi {model.name}"
                 ]
@@ -72,16 +67,15 @@ type MediumBenchmark () =
         view model env pos
 
     let viewHand model =
-        VisualCollection [
-            VisualText "Title"
-            VisualCollection [
-                VisualText "Subheader"
-                VisualCollection [
-                    VisualImage model.pic
+        Collection [
+            Text "Title"
+            Collection [
+                Text "Subheader"
+                Collection [ // TODO 
                 ]
-                VisualText $"Hi {model.name}"
+                Text $"Hi {model.name}"
             ]
-            VisualText "Footer"
+            Text "Footer"
         ]
 
     [<Benchmark(Baseline=true)>]

@@ -12,11 +12,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="Sample.fs" />
+    <Compile Include="TestingUtils.fs" />
     <Compile Include="Main.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Unquote" Version="6.1.0" />
     <PackageReference Include="Expecto" Version="9.*" />
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.*" />

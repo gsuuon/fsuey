@@ -2,47 +2,86 @@ namespace FSUI.Test.Provider
 
 open FSUI.Test.Host
 
-open FSUI.Renderer.Element
+open FSUI.Types
+open FSUI.Renderer
 open FSUI.Renderer.Provider
 open FSUI.Renderer.Cache
 open FSUI.Elements.Interfaces
 
-type VisualProp =
+type Prop =
     | Class of string
 
-type Props = VisualProp list
+type TestElement<'p, 'd, 'v> =
+    { create : 'd -> 'v
+      update : 'd -> 'd -> 'v -> 'v
+    }
 
-[<AbstractClass>]
-type VisualElement<'data, 'visual when 'visual :> Visual>(cache) =
-    inherit Element<'data, Props, 'visual, Visual>((fun x -> x :> Visual), cache)
+type Env() as this =
+    let swappers = Swappers()
 
-type Env() =
-    inherit Provider()
+    let mkElement (element: TestElement<_,_,_>) =
+        Element.create
+            (fun x -> x :> Visual)
+            (swappers.Create ignore)
+            { change = fun props visual ->
+                for Class prop in props.removed do
+                    visual.RemoveClass prop
+                for Class prop in props.created do
+                    visual.AddClass prop
+                visual
+              update = element.update
+              create = fun props data ->
+                let el = element.create data
+                for Class prop in props do
+                    el.AddClass prop
+                el
+            }
 
-    interface IText<Props, VisualText, Visual> with
+    member val NewTexts = 0 with get, set
+    member val NewButtons = 0 with get, set
+    member val NewContainers = 0 with get, set
+
+    interface IProvider with
+        member _.Cache = swappers
+
+    interface IText<Prop, Visual> with
         member val Text =
-            { new VisualElement<string, VisualText>(base.Cache) with
-                member _.Create data props = VisualText data
-                member _.Update cachedContent cachedProps cachedVisual data props =
-                    cachedVisual.Content <- data
-                    cachedVisual
+            mkElement {
+                create = fun data ->
+                    this.NewTexts <- this.NewTexts + 1
+                    Text data
+                update = fun _ data visual ->
+                    visual.Body <- data
+                    visual
             }
 
-    interface IImage<Props, VisualImage, Visual> with
-        member val Image =
-            { new VisualElement<string, VisualImage>(base.Cache) with
-                member _.Create path props = VisualImage path
-                member _.Update cachedContent cachedProps cachedVisual path props =
-                    cachedVisual.Path <- path
-                    cachedVisual
+    interface IButton<Prop, Visual * Keyed<string, (unit -> unit)>, Visual> with
+        member val Button =
+            mkElement {
+                create = fun (child, Keyed (_, action) ) ->
+                    this.NewButtons <- this.NewButtons + 1
+                    Button (child,  action)
+
+                update = fun last (child, keyedAction) visual ->
+                    // Unfortunately since we shove everything into data, we don't know
+                    // if action or child changed
+                    let (child', keyedAction') = last
+
+                    if child' <> child then
+                        visual.Child <- child
+
+                    if keyedAction' <> keyedAction then
+                        let (Keyed (_, action) ) = keyedAction
+                        visual.Action <- action
+
+                    visual
             }
 
-    interface IContainer<Props, VisualCollection, Visual> with
+    interface IContainer<Prop, Visual> with
         member val Container =
-            { new VisualElement<Visual list, VisualCollection>(base.Cache) with
-                member _.Create children props = VisualCollection children
-                member _.Update cachedChildren cachedProps cachedVisual children props =
-                    cachedVisual.Children <- children
-                    cachedVisual
+            mkElement {
+                create = fun data ->
+                    this.NewContainers <- this.NewContainers + 1
+                    Collection data
+                update = fun _ data visual -> visual.Children <- data; visual
             }
-
