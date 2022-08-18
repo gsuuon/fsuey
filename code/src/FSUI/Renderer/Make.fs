@@ -1,7 +1,6 @@
 module FSUI.Renderer.Make
 
 open FSUI.Types
-open FSUI.Renderer.Provider
 
 type Renderer<'model, 'msg, 'env, 'node> =
     abstract member Model : 'model with get
