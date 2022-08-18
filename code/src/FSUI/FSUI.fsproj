@@ -10,10 +10,10 @@
   <ItemGroup>
     <Compile Include="Types/Keyed.fs" />
     <Compile Include="Types/Element.fs" />
+    <Compile Include="Types/Provider.fs" />
     <Compile Include="Difference/Difference.fs" />
     <Compile Include="Flow/Flow.fs" />
     <Compile Include="Renderer/Cache.fs" />
-    <Compile Include="Renderer/Provider.fs" />
     <Compile Include="Renderer/Element.fs" />
     <Compile Include="Renderer/Make.fs" />
     <Compile Include="Elements/Interfaces.fs" />

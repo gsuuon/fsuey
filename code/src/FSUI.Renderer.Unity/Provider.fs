@@ -7,7 +7,6 @@ open FSUI.Types
 open FSUI.Elements.Interfaces
 
 open FSUI.Renderer.Cache
-open FSUI.Renderer.Provider
 open FSUI.Renderer.Element
 open FSUI.Renderer.Unity
 
@@ -40,7 +39,7 @@ module Renderer =
 
         fun view ->
             view env Root |> addOnce.Invoke
-            env.Cache.Swap()
+            env.ProviderState.Tick()
 
     
 [<AutoOpen>]
@@ -108,7 +107,7 @@ type UnityProvider() =
         }
 
     interface IProvider with
-        member _.Cache = swappers
+        member _.ProviderState = swappers
 
     interface IText<ScreenProp, ScreenElement> with
         member val Text =
