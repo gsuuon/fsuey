@@ -9,7 +9,13 @@ type Flow<'T, 'W> =
     | Wait of Option<'W> * (Option<unit -> Flow<'T, 'W>>)
     interface IEnumerable<Option<'T>> with
         member this.GetEnumerator () =
-            let mutable copy = Wait (None, Some (fun () -> this) ) // IEnumerator.Current needs to start _before_ the first element
+            let mutable copy =
+                match this with
+                | Wait (None, _) ->
+                    this
+                | _ ->
+                    Wait (None, Some (fun () -> this) ) // IEnumerator.Current needs to start _before_ the first element
+
             {
                 new IEnumerator<Option<'T>> with
                     member _.Current =
