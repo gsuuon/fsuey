@@ -74,6 +74,9 @@ module NestedStateMachine =
                 state <- actionBar (action, state)
 
     module With =
+        // Is this interesting? We get to effectively skip defining a containing state machine type
+        // but lose out on serialization and being able to talk about the containing state type
+        // These are also not equivalently written
         let actFoo =
             function
             | _, (Success as foo) | _, (Failure as foo) -> foo
@@ -85,26 +88,33 @@ module NestedStateMachine =
             | Decrease, Forward x -> Forward (x - 1)
             | Decrease, Reverse x -> Forward (x + 1)
 
-        let rec actBarA foo =
+        // TODO
+        // I need to think about this more, I think this does allow writing
+        // arbitrarily deep state machines much simpler. We don't need the containing state type if the
+        // bottom type + others are able to fully describe the machine.
+        // Would need an entry function which takes every state argument.
+        let rec actBarA actFoo foo =
             State <| fun action ->
                 let foo' = actFoo (action, foo)
 
-                foo',
-                match foo' with
-                | Success -> actBarB (Reverse 5)
-                | Failure -> actBarA (Forward 5)
-                | x       -> actBarA x
-        and actBarB foo =
+                ( foo'
+                , match foo' with
+                  | Success -> actBarB actFoo (Reverse 5)
+                  | Failure -> actBarA actFoo (Forward 5)
+                  | x       -> actBarA actFoo x
+                )
+        and actBarB actFoo foo =
             State <| fun action ->
                 let foo' = actFoo (action, foo)
 
-                foo',
-                match foo' with
-                | Success -> actBarA (Forward 5)
-                | Failure -> actBarB (Reverse 5)
-                | x       -> actBarB x
+                ( foo'
+                , match foo' with
+                  | Success -> actBarA actFoo (Forward 5)
+                  | Failure -> actBarB actFoo (Reverse 5)
+                  | x       -> actBarB actFoo x
+                )
     
-        let runBarA (foo: FooState) = actBarA foo |> pin
+        let runBarA (foo: FooState) = actBarA actFoo foo |> pin
 
 module DataChanges =
     let reverse =
