@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <UnityEditorVersion>2021.3.2f1</UnityEditorVersion>
-    <UnityLibraryDir>C:\Program Files\Unity\Hub\Editor\$(UnityEditorVersion)\Editor\Data\Managed\UnityEngine\</UnityLibraryDir>
+    <UnityEditorVersion>2021.3.13f1</UnityEditorVersion>
+    <UnityLibraryDir>/home/gsuuon/Unity/Hub/Editor/$(UnityEditorVersion)/Editor/Data/Managed/UnityEngine/</UnityLibraryDir>
   </PropertyGroup>
 
   <ItemGroup>
