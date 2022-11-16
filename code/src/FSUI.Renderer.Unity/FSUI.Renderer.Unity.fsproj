@@ -11,6 +11,11 @@
     <UnityEditorEngineDllsDir>$(UnityHubRootDir)Editor/$(UnityEditorVersion)/Editor/Data/Managed/UnityEngine</UnityEditorEngineDllsDir>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'" >
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../FSUI/FSUI.fsproj"/>
   </ItemGroup>
@@ -32,20 +37,20 @@
 
   <ItemGroup>
     <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.CoreModule.dll">
-        <Private>false</Private>
+      <Private>false</Private>
     </Reference>
     <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.UIElementsModule.dll">
-        <Private>false</Private>
+      <Private>false</Private>
     </Reference>
     <!-- These are to be able to inherit VisualElement in VisualGameObjectContainer -->
     <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.TextRenderingModule.dll">
-        <Private>false</Private>
+      <Private>false</Private>
     </Reference>
     <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.UIElementsNativeModule.dll">
-        <Private>false</Private>
+      <Private>false</Private>
     </Reference>
     <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.IMGUIModule.dll">
-        <Private>false</Private>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 
