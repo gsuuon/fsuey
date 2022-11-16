@@ -3,12 +3,12 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <UnityEditorVersion>2021.3.2f1</UnityEditorVersion>
   </PropertyGroup>
 
   <PropertyGroup>
-    <UnityEditorRootDir>C:\Program Files\Unity\Hub\Editor\$(UnityEditorVersion)</UnityEditorRootDir>
-    <UnityEditorEngineDllsDir>$(UnityEditorRootDir)\Editor\Data\Managed\UnityEngine</UnityEditorEngineDllsDir>
+    <UnityHubRootDir>/home/gsuuon/Unity/Hub/</UnityHubRootDir>
+    <UnityEditorVersion>2021.3.13f1</UnityEditorVersion>
+    <UnityEditorEngineDllsDir>$(UnityHubRootDir)Editor/$(UnityEditorVersion)/Editor/Data/Managed/UnityEngine</UnityEditorEngineDllsDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,20 +31,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.CoreModule.dll">
+    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.CoreModule.dll">
         <Private>false</Private>
     </Reference>
-    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.UIElementsModule.dll">
+    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.UIElementsModule.dll">
         <Private>false</Private>
     </Reference>
     <!-- These are to be able to inherit VisualElement in VisualGameObjectContainer -->
-    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.TextRenderingModule.dll">
+    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.TextRenderingModule.dll">
         <Private>false</Private>
     </Reference>
-    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.UIElementsNativeModule.dll">
+    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.UIElementsNativeModule.dll">
         <Private>false</Private>
     </Reference>
-    <Reference Include="$(UnityEditorEngineDllsDir)\UnityEngine.IMGUIModule.dll">
+    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.IMGUIModule.dll">
         <Private>false</Private>
     </Reference>
   </ItemGroup>
