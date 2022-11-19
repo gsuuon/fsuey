@@ -3,11 +3,9 @@ namespace FSUI.Renderer.Unity.SampleApplication.Entry
 open UnityEngine
 open UnityEngine.UIElements
 
-
 open FSUI.Types
 open FSUI.Renderer.Unity
 open FSUI.Renderer.Unity.SampleApplication.App
-
 
 type FSUIUnityEntry() =
     inherit MonoBehaviour()
@@ -23,4 +21,4 @@ type FSUIUnityEntry() =
 
         let render = Renderer.mount<UnityProvider> this.document
 
-        App.main render
+        main render
