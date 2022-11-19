@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <UnityHubRootDir>/home/gsuuon/Unity/Hub/</UnityHubRootDir>
-    <UnityEditorVersion>2021.3.13f1</UnityEditorVersion>
+    <UnityHubRootDir Condition="'$(UNITYHUBROOTDIR)' == ''">/home/gsuuon/Unity/Hub/</UnityHubRootDir>
+    <UnityEditorVersion Condition="'$(UNITYEDITORVERSION)' == ''">2021.3.13f1</UnityEditorVersion>
     <UnityEditorEngineDllsDir>$(UnityHubRootDir)Editor/$(UnityEditorVersion)/Editor/Data/Managed/UnityEngine</UnityEditorEngineDllsDir>
   </PropertyGroup>
 
