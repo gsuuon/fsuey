@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <Compile Include="AppViews.fs" />
+    <Compile Include="App.fs" />
     <Compile Include="FSUIUnityEntry.fs" />
   </ItemGroup>
 
