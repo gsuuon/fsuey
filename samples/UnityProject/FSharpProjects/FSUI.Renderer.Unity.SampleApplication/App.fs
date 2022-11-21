@@ -24,28 +24,6 @@ module Util =
                 member _.Write (msg: string) = Debug.Log msg
             }
 
-module ItemComponent =
-    type ItemChoice =
-        | ItemA
-        | ItemB
-
-    let selectItem render resolve =
-        let itemButton item =
-            button []
-                ( text [] (sprintf "Choose: %A" item)
-                , does ("select item", fun () ->
-                    dlog <| sprintf "Clicked item %A" item
-                    resolve item
-                  )
-                )
-
-        render
-         <| div [] [
-                text [] "Pick a thing:"
-                itemButton ItemA
-                itemButton ItemB
-            ]
-
 module GameModel =
     type FooItem =
         { color : string
@@ -84,46 +62,91 @@ module ViewModel =
         | Items
         | Item of Item
 
-type Renders<'env, 'node> = ('env -> Position -> 'node) -> unit
-
 type ViewMethods<'View, 'State> =
     { update : 'View -> unit
       state : 'State
     }
 
 open GameModel
+
+open type Elements<ScreenProp>
+
 let viewDetail vm =
     function
     | Foo foo ->
-        div [] [
-            text [] $"Color: {foo.color}"
-            text [] $"Smell: {foo.smell}"
-            button [] ( text [] "back", fun _ ->
-                vm.update Items
-            )
+        div [
+            join [ prefab "item/foo" [] ]
+            text $"Color: {foo.color}"
+            text $"Smell: {foo.smell}"
         ]
     | Bar bar ->
-        div [] [
-            text [] $"Size: {bar.size}"
-            text [] $"Description: {bar.description}"
+        div [
+            join [ prefab "item/bar" [] ]
+            text $"Size: {bar.size}"
+            text $"Description: {bar.description}"
         ]
 
 open ViewModel
 // Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
-let main vm =
+
+let viewMain vm =
     function
     | Items ->
         let xs =
             vm.state.items |>
                 Seq.map ( fun (KeyValue(ItemKey(key), item) ) ->
-                    button []
-                        ( text [] item.name
-                        , does (string key, fun _ -> Item item |> vm.update
-                        ) )
+                    button (item.name, key) <| fun _ ->
+                        Item item |> vm.update
                 )
-        div [] ( xs |> Seq.toList )
+        div [Class "foo"] ( xs |> Seq.toList )
     | Item item ->
-        div [] [
-            text [] item.name
+        div [
+            text item.name
+            text $"hp: {item.hp}"
             viewDetail vm item.detail
+            button "back" <| fun _ -> vm.update Items
         ]
+
+let mkRun view initModel initState render =
+    let mutable state = initState
+
+    let rec vm = {
+        update = fun viewModel ->
+            view vm viewModel |> render
+
+        state = state
+    }
+
+    view vm initModel |> render
+
+type Entry<'provider, 'visual> = (Renders<'provider, 'visual> -> unit) -> unit
+
+let runMain : Entry<UnityProvider, ScreenElement> =
+    mkRun viewMain Items {
+        items = Map [
+            ItemKey 0, {
+                name = "apple"
+                hp = 100
+                detail = Foo {
+                    color = "red"
+                    smell = "nice"
+                }
+            }
+            ItemKey 1, {
+                name = "bar"
+                hp = 90
+                detail = Bar {
+                    size = Big
+                    description = "a big bar"
+                }
+            }
+            ItemKey 2, {
+                name = "smol bar"
+                hp = 20
+                detail = Bar {
+                    size = Small
+                    description = "a small bar"
+                }
+            }
+        ]
+    }

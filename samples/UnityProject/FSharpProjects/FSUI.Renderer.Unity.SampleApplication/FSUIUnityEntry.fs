@@ -19,6 +19,4 @@ type FSUIUnityEntry() =
     member this.Start () =
         printToUnity()
 
-        let render = Renderer.mount<UnityProvider> this.document
-
-        main render
+        Renderer.mount<UnityProvider> this.document |> runMain
