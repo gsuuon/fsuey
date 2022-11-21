@@ -33,11 +33,11 @@ module private Util =
             eprintfn "Fresh cache already contained an element at %s" (string pos)
         visual
 
-let create<'prop, 'data, 'visual, 'node, 'element
+let createBase<'prop, 'data, 'visual, 'node, 'element
                 when 'element :> IElementRenderer<'prop, 'data, 'visual>
                  and 'prop : equality
-                 and 'data : equality
                  >
+    (diffData: 'data -> 'data -> bool)
     (asNode: 'visual -> 'node)
     (cache: Swapper<Position, 'prop collection, 'data, 'visual>)
     (element: 'element)
@@ -51,7 +51,9 @@ let create<'prop, 'data, 'visual, 'node, 'element
             element.Create props data
         | true, (props', data', visual') ->
             visual'
-             |> gate (data' <> data) (element.Update data' data)
+             |> gate (diffData data' data) (element.Update data' data)
              |> gateOpt (difference props' props) element.Change
         |>  save cache props data pos
         |>  asNode
+
+let inline create a = createBase (<>) a
