@@ -41,8 +41,10 @@ type Elements<'prop> =
 
     static member inline button x =
         fun action -> button [] ( text [] x, Keyed (x, action ) )
+
     static member inline button (x, key) =
-        fun action -> button [] ( text [] x, Keyed (key, action ) )
+        fun action -> button [] ( text [] x, Keyed (string key, action ) )
+            // TODO key is converted to string because we can't be generic on the IButton interface
     static member inline button (x: Renders<_,_>, key) =
         fun action -> button [] ( x, Keyed (key, action ) )
 
@@ -50,3 +52,5 @@ type Elements<'prop> =
         div [] children
     static member inline div (props: 'prop list) =
         fun (children: Renders<_,_> list) -> div props children
+
+    static member inline join xs = join [] xs

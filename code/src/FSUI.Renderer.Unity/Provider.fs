@@ -159,6 +159,7 @@ type UnityProvider() =
                 update = fun d' d e -> e // TODO
             }
     
+    // TODO can I hide the Keyed<'Key, unit -> unit> so I can use any IEquitable as 'Key?
     interface IButton<ScreenProp, ScreenElement * Keyed<string, unit -> unit>, ScreenElement> with
         member val Button = 
             screen {
