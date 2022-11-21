@@ -46,6 +46,84 @@ module ItemComponent =
                 itemButton ItemB
             ]
 
+module GameModel =
+    type FooItem =
+        { color : string
+          smell : string
+        }
 
+    type BarItemSize =
+        | Small
+        | Big
 
+    type BarItem =
+        { size : BarItemSize
+          description : string
+        }
+         
+    type ItemDetail =
+        | Foo of FooItem
+        | Bar of BarItem
 
+    type Item =
+        { name : string
+          detail : ItemDetail
+          hp : int
+        }
+
+    type ItemKey = ItemKey of int
+
+    type World =
+        { items : Map<ItemKey, Item> }
+
+[<AutoOpen>]
+module ViewModel =
+    open GameModel
+
+    type Main =
+        | Items
+        | Item of Item
+
+type Renders<'env, 'node> = ('env -> Position -> 'node) -> unit
+
+type ViewMethods<'View, 'State> =
+    { update : 'View -> unit
+      state : 'State
+    }
+
+open GameModel
+let viewDetail vm =
+    function
+    | Foo foo ->
+        div [] [
+            text [] $"Color: {foo.color}"
+            text [] $"Smell: {foo.smell}"
+            button [] ( text [] "back", fun _ ->
+                vm.update Items
+            )
+        ]
+    | Bar bar ->
+        div [] [
+            text [] $"Size: {bar.size}"
+            text [] $"Description: {bar.description}"
+        ]
+
+open ViewModel
+// Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
+let main vm =
+    function
+    | Items ->
+        let xs =
+            vm.state.items |>
+                Seq.map ( fun (KeyValue(ItemKey(key), item) ) ->
+                    button []
+                        ( text [] item.name
+                        , does (string key, fun _ -> Item item |> vm.update
+                        ) )
+                )
+        div [] ( xs |> Seq.toList )
+    | Item item ->
+        div [] [
+            text [] item.name
+            viewDetail vm item.detail
+        ]
