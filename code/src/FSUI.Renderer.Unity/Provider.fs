@@ -84,8 +84,9 @@ type UnityProvider() =
         changes.removed |> ScreenElement.Props.unapplyProps el
         el
 
-    let screen (el: ScreenElementRecord<'data, 'visual>) =
-        create
+    let screenBase diffData (el: ScreenElementRecord<'data, 'visual>) =
+        createBase
+            diffData
             (fun x -> x :> VisualElement)
             (swappers.Create Graph.remove) 
             { create =
@@ -97,6 +98,8 @@ type UnityProvider() =
               change = changeScreenProps
             }
 
+    let screen x = screenBase (<>) x
+
     let world (x: IElementRenderer<'props, 'data, WorldElement>) =
         create id (swappers.Create Graph.remove) x
 
@@ -104,6 +107,21 @@ type UnityProvider() =
         screen {
             create = fun d    -> Label d
             update = fun d' d e -> e.text <- d; e
+        }
+
+    let noKeyButton =
+        let diff = fun a b -> not (LanguagePrimitives.PhysicalEquality a b)
+
+        screenBase diff {
+            create = fun (child: ScreenElement, action) ->
+                ScreenNode.addChild
+                    (Button (System.Action action) ) // directly stick the fn on without converting to delegate or we can't remove
+                    child
+            update = fun (_, action') (child, action) e ->
+                e.remove_clicked action'
+                e.add_clicked action
+
+                ScreenNode.addChild e child
         }
 
     interface IProvider with
@@ -142,7 +160,7 @@ type UnityProvider() =
             }
     
     interface IButton<ScreenProp, ScreenElement * Keyed<string, unit -> unit>, ScreenElement> with
-        member val Button =
+        member val Button = 
             screen {
                 create = fun (child, Keyed (_, action) ) ->
                     ScreenNode.addChild
@@ -155,6 +173,9 @@ type UnityProvider() =
                     ScreenNode.addChild e child
             }
 
+    interface IButton<ScreenProp, ScreenElement * (unit -> unit), ScreenElement> with
+        member _.Button = noKeyButton
+    
     // NOTE These are just examples of multiple specializations
     interface IPoly<ScreenProp, obj, VisualElement> with
         member val Poly =
