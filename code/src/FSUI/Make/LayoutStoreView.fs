@@ -41,7 +41,7 @@ type ShouldUpdate<'state> =
 type Updater<'state> = 'state -> ShouldUpdate<'state>
 
 let mkStoreByIngest
-    (ingest: 'msg -> (Updater<'state> -> unit) -> unit)
+    (ingest: (Updater<'state> -> unit) -> 'msg -> unit)
     initialState
     render
     =
@@ -57,7 +57,7 @@ let mkStoreByIngest
 
     { new Store<_,_> with
         member _.State = state
-        member this.Dispatch msg = ingest msg set
+        member this.Dispatch msg = ingest set msg
     }
 
 let make
@@ -67,72 +67,3 @@ let make
     (render        : 'node -> unit)
     =
     Component (initialLayout, mkStore, show, render)
-
-module App =
-    module Domain =
-        type Msg =
-            | Increment
-            | Decrement
-
-        type State =
-            { x : int }
-
-    open Domain
-
-    let text _ = ()
-    let button _ = ()
-
-    type Layout =
-        | A
-        | B
-        | C
-
-    let viewMain (view: View<_,_,_>) =
-        function
-        | A -> text view.State.x
-        | B -> button (fun _ -> view.Dispatch Increment)
-        | C -> button (fun _ -> view.Layout B)
-
-    let myStore init render =
-        let mutable state = init
-
-        async {
-            while true do
-                do! Async.Sleep 1000
-                state <- { state with x = state.x + 1 }
-                render ()
-        } |> Async.Start
-
-        { new Store<_,_> with
-            member _.State = state
-            member this.Dispatch msg = 
-                match msg with
-                | Increment ->
-                    async {
-                        if this.State.x < 10 then
-                            state <- { state with x = this.State.x + 1 }
-                            render ()
-                        else
-                            ()
-                    } |> Async.Start
-                | Decrement ->
-                    ()
-        }
-
-    let myIngestStore =
-        mkStoreByIngest
-         <| fun msg update ->
-                match msg with
-                | Increment ->
-                    async {
-                        update
-                         <| function
-                            | { x = x } when x < 10 ->
-                                Update { x = x + 1 }
-                            | _ ->
-                                NoUpdate
-                    } |> Async.Start
-                | Decrement ->
-                    ()
-
-    let runner renderer = make A (myStore { x = 0 }) viewMain renderer
