@@ -171,23 +171,20 @@ let initialize update =
         while true do
             do! Async.Sleep 1000
 
-            dlog "loop"
-
-            update <| fun world ->
-                dlog "update"
-                Update
-                    { world with
-                        tick = world.tick + 1
-                        items = world.items |> Map.map (fun key item ->
-                            { item with hp = item.hp - 1}
-                        )
-                    }
-    } |> Async.Start
+            try
+                update <| fun world ->
+                    Update
+                        { world with
+                            tick = world.tick + 1
+                            items = world.items |> Map.map (fun key item ->
+                                { item with hp = item.hp - 1}
+                            )
+                        }
+            with
+            | e -> Debug.LogError e.Message
+    } |> Async.StartImmediate
 
 let make renderer =
-    let store doRender =
-        mkStoreByIngest initialize updateStore initialModel <| fun () ->
-            dlog "rendering"
-            doRender()
+    let store = mkStoreByIngest initialize updateStore initialModel
 
     make Items store showMain renderer
