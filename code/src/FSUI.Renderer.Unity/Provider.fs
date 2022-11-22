@@ -41,7 +41,6 @@ module Renderer =
             view env Root |> addOnce.Invoke
             env.ProviderState.Tick()
 
-    
 [<AutoOpen>]
 module Types =
     type ScreenProp = ScreenElement.Props.Prop

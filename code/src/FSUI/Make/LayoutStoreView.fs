@@ -14,7 +14,7 @@ type View<'layout, 'state, 'msg> =
 type Component<'layout, 'state, 'msg, 'node>(
     // Class to contain the recursive references between view store and render
         initialLayout : 'layout,
-        mkStore : (unit -> unit) -> Store<'state, 'msg>,
+        mkStore       : (unit -> unit) -> Store<'state, 'msg>,
         show          : View<_,_,_> -> 'layout -> 'node,
         render        : 'node -> unit
     ) as this
@@ -38,7 +38,13 @@ type ShouldUpdate<'state> =
     | Update of 'state
     | NoUpdate
 
-let mkStoreByIngest ingest initialState render =
+type Updater<'state> = 'state -> ShouldUpdate<'state>
+
+let mkStoreByIngest
+    (ingest: 'msg -> (Updater<'state> -> unit) -> unit)
+    initialState
+    render
+    =
     let mutable state = initialState
 
     let set updater =
@@ -54,8 +60,13 @@ let mkStoreByIngest ingest initialState render =
         member this.Dispatch msg = ingest msg set
     }
 
-let make initialLayout mkStore show render =
-    Component(initialLayout, mkStore, show, render)
+let make
+    (initialLayout : 'layout)
+    (mkStore       : (unit -> unit) -> Store<'state, 'msg>)
+    (show          : View<_,_,_> -> 'layout -> 'node)
+    (render        : 'node -> unit)
+    =
+    Component (initialLayout, mkStore, show, render)
 
 module App =
     module Domain =
