@@ -76,11 +76,11 @@ module App =
         | B
         | C
 
-    let showMain (vm: View<_,_,_>) =
+    let viewMain (view: View<_,_,_>) =
         function
-        | A -> text vm.State.x
-        | B -> button (fun _ -> vm.Dispatch Increment)
-        | C -> button (fun _ -> vm.Layout B)
+        | A -> text view.State.x
+        | B -> button (fun _ -> view.Dispatch Increment)
+        | C -> button (fun _ -> view.Layout B)
 
     let myStore init render =
         let mutable state = init
@@ -123,4 +123,5 @@ module App =
                     } |> Async.Start
                 | Decrement ->
                     ()
-    let runner renderer = make A (myStore { x = 0 }) showMain renderer
+
+    let runner renderer = make A (myStore { x = 0 }) viewMain renderer
