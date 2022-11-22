@@ -1,4 +1,4 @@
-module FSUI.Renderer.Make
+module FSUI.Make.Mvu
 
 open FSUI.Types
 
