@@ -53,7 +53,9 @@ module GameModel =
     type ItemKey = ItemKey of int
 
     type World =
-        { items : Map<ItemKey, Item> }
+        { items : Map<ItemKey, Item>
+          tick : int
+        }
 
 [<AutoOpen>]
 module LayoutModel =
@@ -64,13 +66,13 @@ module LayoutModel =
         
     type Main =
         | Items
-        | Item of Item
+        | Item of ItemKey
 
 open type Elements<ScreenProp>
 
 open FSUI.Make.LayoutStoreView
 
-let viewDetail (vm: View<_,_,_>) =
+let showDetail =
     function
     | Foo foo ->
         div [
@@ -85,26 +87,41 @@ let viewDetail (vm: View<_,_,_>) =
             text $"Description: {bar.description}"
         ]
 
-let viewMain (v: View<_,_,_>) =
+let showMain (v: View<_,_,_>) =
     function
     | Items ->
-        let xs =
-            v.State.items |>
-                Seq.map ( fun (KeyValue(ItemKey(key), item) ) ->
-                    button (item.name, key) <| fun _ ->
-                        Item item |> v.Layout
+        let showItems =
+            v.State.items
+             |> Seq.map ( fun ( KeyValue(itemKey, item) ) ->
+                    button ( item.name, itemKey ) <| fun _ ->
+                        Item itemKey |> v.Layout
                 )
-        div [Class "foo"] ( xs |> Seq.toList )
-    | Item item ->
-        div [
-            text item.name
-            text $"hp: {item.hp}"
-            viewDetail v item.detail
-            button "back" <| fun _ -> v.Layout Items
-        ]
+             |> Seq.toList
+
+        div [Class "foo"] 
+            [
+                yield text v.State.tick
+                yield! showItems
+            ]
+    | Item itemKey ->
+        match v.State.items.TryFind itemKey with
+        | Some item ->
+            div [
+                text item.name
+                text $"hp: {item.hp}"
+                showDetail item.detail
+                button "boost" <| fun _ -> IncreaseHP itemKey |> v.Dispatch
+                button "back" <| fun _ -> v.Layout Items
+            ]
+        | None ->
+            div [
+                text "No item"
+                button "back" <| fun _ -> v.Layout Items
+            ]
 
 let initialModel : World =
     {
+        tick = 0
         items = Map [
             ItemKey 0, {
                 name = "apple"
@@ -133,22 +150,44 @@ let initialModel : World =
         ]
     }
 
-let make renderer =
-    let store =
-        mkStoreByIngest <| fun msg update ->
-            match msg with
-            | IncreaseHP key ->
-                update <| fun world ->
-                    if Map.containsKey key world.items then
-                        { world with
-                            items = world.items |> Map.change key (
-                                function
-                                | Some item -> Some { item with hp = item.hp + 5 }
-                                | None -> None
-                            )
-                        }
-                         |> Update
-                    else
-                        NoUpdate
+let updateStore update =
+    function
+    | IncreaseHP key ->
+        update <| fun world ->
+            if Map.containsKey key world.items then
+                { world with
+                    items = world.items |> Map.change key (
+                        function
+                        | Some item -> Some { item with hp = item.hp + 5 }
+                        | None -> None
+                    )
+                }
+                 |> Update
+            else
+                NoUpdate
 
-    make Items (store initialModel) viewMain renderer
+let initialize update =
+    async {
+        while true do
+            do! Async.Sleep 1000
+
+            dlog "loop"
+
+            update <| fun world ->
+                dlog "update"
+                Update
+                    { world with
+                        tick = world.tick + 1
+                        items = world.items |> Map.map (fun key item ->
+                            { item with hp = item.hp - 1}
+                        )
+                    }
+    } |> Async.Start
+
+let make renderer =
+    let store doRender =
+        mkStoreByIngest initialize updateStore initialModel <| fun () ->
+            dlog "rendering"
+            doRender()
+
+    make Items store showMain renderer

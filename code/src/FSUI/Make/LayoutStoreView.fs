@@ -41,9 +41,10 @@ type ShouldUpdate<'state> =
 type Updater<'state> = 'state -> ShouldUpdate<'state>
 
 let mkStoreByIngest
+    (initialize: (Updater<'state> -> unit) -> unit)
     (ingest: (Updater<'state> -> unit) -> 'msg -> unit)
-    initialState
-    render
+    (initialState: 'state)
+    (render: unit -> unit)
     =
     let mutable state = initialState
 
@@ -54,6 +55,8 @@ let mkStoreByIngest
             render()
         | NoUpdate ->
             ()
+    
+    initialize set
 
     { new Store<_,_> with
         member _.State = state
