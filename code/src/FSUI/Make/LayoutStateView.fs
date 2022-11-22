@@ -11,11 +11,6 @@ type View<'layout, 'state, 'msg> =
     abstract Dispatch : 'msg -> unit
     abstract State : 'state
 
-type Runner<'layout, 'state, 'msg, 'node> =
-    abstract View : View<'layout, 'state, 'msg>
-    abstract Render : unit -> unit
-
-
 type Component<'layout, 'state, 'msg, 'node>(
     // Class to contain the recursive references between view store and render
         initialLayout : 'layout,
@@ -26,21 +21,18 @@ type Component<'layout, 'state, 'msg, 'node>(
     =
 
     let mutable layout = initialLayout
-    let store : Store<'state, 'msg> = mkStore this.doRender
+    let store : Store<'state, 'msg> = mkStore this.Render
     let view =
         { new View<_,_,_> with
             member _.Layout layout' =
                 layout <- layout'
-                this.doRender ()
+                this.Render ()
             member _.Dispatch x = store.Dispatch x
             member _.State = store.State
         }
 
-    member _.doRender () = show view layout |> render
-
-    interface Runner<'layout,'state,'msg,'node> with
-        member _.View = view
-        member _.Render () = this.doRender ()
+    member _.View = view
+    member _.Render () = show view layout |> render
 
 type ShouldUpdate<'state> =
     | Update of 'state
@@ -63,7 +55,7 @@ let mkStoreByIngest ingest initialState render =
     }
 
 let make initialLayout mkStore show render =
-    Component(initialLayout, mkStore, show, render) :> Runner<_,_,_,_>
+    Component(initialLayout, mkStore, show, render)
 
 module App =
     module Domain =
