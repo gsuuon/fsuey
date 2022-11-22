@@ -24,6 +24,7 @@ module Util =
                 member _.Write (msg: string) = Debug.Log msg
             }
 
+[<AutoOpen>]
 module GameModel =
     type FooItem =
         { color : string
@@ -55,23 +56,21 @@ module GameModel =
         { items : Map<ItemKey, Item> }
 
 [<AutoOpen>]
-module ViewModel =
+module LayoutModel =
     open GameModel
 
+    type Msg =
+        | IncreaseHP of ItemKey
+        
     type Main =
         | Items
         | Item of Item
 
-type ViewMethods<'View, 'State> =
-    { update : 'View -> unit
-      state : 'State
-    }
-
-open GameModel
-
 open type Elements<ScreenProp>
 
-let viewDetail vm =
+open FSUI.Make.LayoutStoreView
+
+let viewDetail (vm: View<_,_,_>) =
     function
     | Foo foo ->
         div [
@@ -86,43 +85,26 @@ let viewDetail vm =
             text $"Description: {bar.description}"
         ]
 
-open ViewModel
-// Usage of certain elements requires us to pin our provider type to UnityProvider (prefab specifically)
-
-let viewMain vm =
+let viewMain (v: View<_,_,_>) =
     function
     | Items ->
         let xs =
-            vm.state.items |>
+            v.State.items |>
                 Seq.map ( fun (KeyValue(ItemKey(key), item) ) ->
                     button (item.name, key) <| fun _ ->
-                        Item item |> vm.update
+                        Item item |> v.Layout
                 )
         div [Class "foo"] ( xs |> Seq.toList )
     | Item item ->
         div [
             text item.name
             text $"hp: {item.hp}"
-            viewDetail vm item.detail
-            button "back" <| fun _ -> vm.update Items
+            viewDetail v item.detail
+            button "back" <| fun _ -> v.Layout Items
         ]
 
-let mkRun view initModel initState render =
-    let mutable state = initState
-
-    let rec vm = {
-        update = fun viewModel ->
-            view vm viewModel |> render
-
-        state = state
-    }
-
-    view vm initModel |> render
-
-type Entry<'provider, 'visual> = (Renders<'provider, 'visual> -> unit) -> unit
-
-let runMain : Entry<UnityProvider, ScreenElement> =
-    mkRun viewMain Items {
+let initialModel : World =
+    {
         items = Map [
             ItemKey 0, {
                 name = "apple"
@@ -150,3 +132,23 @@ let runMain : Entry<UnityProvider, ScreenElement> =
             }
         ]
     }
+
+let make renderer =
+    let store =
+        mkStoreByIngest <| fun msg update ->
+            match msg with
+            | IncreaseHP key ->
+                update <| fun world ->
+                    if Map.containsKey key world.items then
+                        { world with
+                            items = world.items |> Map.change key (
+                                function
+                                | Some item -> Some { item with hp = item.hp + 5 }
+                                | None -> None
+                            )
+                        }
+                         |> Update
+                    else
+                        NoUpdate
+
+    make Items (store initialModel) viewMain renderer

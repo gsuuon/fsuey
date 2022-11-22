@@ -19,4 +19,7 @@ type FSUIUnityEntry() =
     member this.Start () =
         printToUnity()
 
-        Renderer.mount<UnityProvider> this.document |> runMain
+        let mainComponent = 
+            Renderer.mount<UnityProvider> this.document |> make
+
+        mainComponent.Render()
