@@ -1,5 +1,6 @@
 module FSUI.Renderer.Unity.SampleApplication.App
 
+open System
 open UnityEngine
 open UnityEngine.UIElements
 
@@ -82,8 +83,10 @@ let showMain (v: View<_,_,_>) =
         let showItems =
             v.State.items
              |> Seq.map ( fun ( KeyValue(itemKey, item) ) ->
-                    button ( item.name, string itemKey ) <| fun _ ->
+                    button ( item.name, string itemKey ) <| Action(fun _ ->
+                        printfn $"Show {itemKey}"
                         Item itemKey |> v.Layout
+                    )
                 )
              |> Seq.toList
 
@@ -99,13 +102,20 @@ let showMain (v: View<_,_,_>) =
                 text item.name
                 text $"hp: {item.hp}"
                 showDetail item.detail
-                button "repair" <| fun _ -> IncreaseHP itemKey |> v.Dispatch
-                button "back" <| fun _ -> v.Layout Items
+                button "repair" <| Action(fun _ ->
+                        printfn $"repair {itemKey}"
+                        IncreaseHP itemKey |> v.Dispatch
+                    )
+                button "back" <| Action(fun _ ->
+                    printfn "back"
+                    v.Layout Items)
             ]
         | None ->
             div [
                 text "No item"
-                button "back" <| fun _ -> v.Layout Items
+                button "back" <| Action(fun _ ->
+                    printfn "back None"
+                    v.Layout Items)
             ]
 
 let initialModel : World =

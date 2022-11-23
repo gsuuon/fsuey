@@ -22,10 +22,12 @@ let make render =
     async {
         render
          <| div [] [
+                div [] [ text [] "boops" ]
                 but "a"
                 but "b"
             ]
         do! Async.Sleep 1000
+
         render
          <| div [] [
                 but "c"

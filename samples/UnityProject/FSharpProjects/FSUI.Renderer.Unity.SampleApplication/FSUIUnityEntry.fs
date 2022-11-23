@@ -19,9 +19,13 @@ type FSUIUnityEntry() =
     member this.Start () =
         Util.printToUnity()
 
-        // let mainComponent = 
-        //     Renderer.mount<UnityProvider> this.document |> make
+        let renderApp () =
+            let mainComponent = 
+                Renderer.mount<UnityProvider> this.document |> App.make
 
-        // mainComponent.Render()
+            mainComponent.Render()
 
-        Renderer.mount<UnityProvider> this.document |> ButtonFix.make
+        let renderButtonFix () =
+            Renderer.mount<UnityProvider> this.document |> ButtonFix.make
+
+        renderButtonFix()
