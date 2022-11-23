@@ -6,8 +6,8 @@ open System.Collections.Generic
 type ISwapper =
     abstract Swap : unit -> unit
 
-type Swapper<'K, 'data, 'props, 'visual>(
-    [<InlineIfLambda>]mkCache: unit -> Dictionary<'K, 'data * 'props * 'visual>,
+type Swapper<'Key, 'data, 'props, 'visual>(
+    [<InlineIfLambda>]mkCache: unit -> Dictionary<'Key, 'data * 'props * 'visual>,
     remove : 'visual -> unit
     ) =
     let cacheA = mkCache()

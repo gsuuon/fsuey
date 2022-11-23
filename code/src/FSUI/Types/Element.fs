@@ -32,7 +32,6 @@ type IElementRenderer<'prop, 'data, 'visual> =
     abstract Change: Changes<'prop> -> 'visual -> 'visual
     abstract Update: 'data -> 'data -> 'visual -> 'visual
 
-
 type ElementRenderer<'prop, 'data, 'visual> =
     { create : 'prop collection -> 'data -> 'visual
       change : Changes<'prop> -> 'visual -> 'visual

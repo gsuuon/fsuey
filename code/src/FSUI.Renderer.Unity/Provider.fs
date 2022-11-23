@@ -41,7 +41,6 @@ module Renderer =
             view env Root |> addOnce.Invoke
             env.ProviderState.Tick()
 
-    
 [<AutoOpen>]
 module Types =
     type ScreenProp = ScreenElement.Props.Prop
@@ -84,8 +83,9 @@ type UnityProvider() =
         changes.removed |> ScreenElement.Props.unapplyProps el
         el
 
-    let screen (el: ScreenElementRecord<'data, 'visual>) =
-        create
+    let screenBase diffData (el: ScreenElementRecord<'data, 'visual>) =
+        createBase
+            diffData
             (fun x -> x :> VisualElement)
             (swappers.Create Graph.remove) 
             { create =
@@ -97,6 +97,8 @@ type UnityProvider() =
               change = changeScreenProps
             }
 
+    let screen x = screenBase (<>) x
+
     let world (x: IElementRenderer<'props, 'data, WorldElement>) =
         create id (swappers.Create Graph.remove) x
 
@@ -104,6 +106,21 @@ type UnityProvider() =
         screen {
             create = fun d    -> Label d
             update = fun d' d e -> e.text <- d; e
+        }
+
+    let noKeyButton =
+        let diff = fun a b -> not (LanguagePrimitives.PhysicalEquality a b)
+
+        screenBase diff {
+            create = fun (child: ScreenElement, action) ->
+                ScreenNode.addChild
+                    (Button (System.Action action) ) // directly stick the fn on without converting to delegate or we can't remove
+                    child
+            update = fun (_, action') (child, action) e ->
+                e.remove_clicked action'
+                e.add_clicked action
+
+                ScreenNode.addChild e child
         }
 
     interface IProvider with
@@ -141,20 +158,39 @@ type UnityProvider() =
                 update = fun d' d e -> e // TODO
             }
     
+    // TODO can I hide the Keyed<'Key, unit -> unit> so I can use any IEquitable as 'Key?
     interface IButton<ScreenProp, ScreenElement * Keyed<string, unit -> unit>, ScreenElement> with
-        member val Button =
+        member val Button = 
             screen {
                 create = fun (child, Keyed (_, action) ) ->
                     ScreenNode.addChild
                         (Button (System.Action action) ) // directly stick the fn on without converting to delegate or we can't remove
                         child
-                update = fun (_, Keyed (_, action') ) (child, Keyed (_, action) ) e ->
-                    e.remove_clicked action'
-                    e.add_clicked action
 
-                    ScreenNode.addChild e child
+                update = fun (_, Keyed (_, action') ) (child, Keyed (_, action) ) e ->
+                    // FIXME
+                    // There's no way to just remove all the event handlers from button from F# and I can't
+                    // get removing handlers to work even wrapping before here
+
+                    // e.remove_clicked action'
+                        // Trying to remove the previous action doesn't seem to work, I'm not sure why
+                        // should be the same Action instance since we're pulling from the cache for the previous
+                    // e.add_clicked action
+
+                    // ScreenNode.addChild e child
+
+                    // Just destroy and recreate
+                    Graph.remove e
+
+                    ScreenNode.addChild
+                        (Button action)
+                        child
             }
 
+    // TODO remove
+    interface IButton<ScreenProp, ScreenElement * (unit -> unit), ScreenElement> with
+        member _.Button = noKeyButton
+    
     // NOTE These are just examples of multiple specializations
     interface IPoly<ScreenProp, obj, VisualElement> with
         member val Poly =
