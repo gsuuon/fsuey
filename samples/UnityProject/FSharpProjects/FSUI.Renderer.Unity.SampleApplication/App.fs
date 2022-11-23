@@ -17,16 +17,6 @@ open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 open type Elements<ScreenProp>
 
 [<AutoOpen>]
-module Util =
-    let dlog x = Debug.Log x
-
-    let printToUnity () = // TODO stringbuilder to not add newline on each write
-        System.Console.SetOut
-            { new System.IO.StringWriter() with
-                member _.Write (msg: string) = Debug.Log msg
-            }
-
-[<AutoOpen>]
 module GameModel =
     type FooItem =
         { color : string

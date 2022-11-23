@@ -10,6 +10,23 @@ open FSUI.Renderer.Cache
 open FSUI.Renderer.Element
 open FSUI.Renderer.Unity
 
+module Util =
+    open System
+
+    let printToUnity () =
+        let mutable currentLine = ""
+
+        Console.SetOut
+            { new IO.TextWriter() with
+                member _.Write (msg: string) =
+                    currentLine <- currentLine + msg
+                member _.WriteLine () =
+                    Debug.Log currentLine
+                    currentLine <- ""
+                member _.Encoding =
+                    System.Text.Encoding.UTF8
+            }
+
 module Flow =
     open FSUI.Flow
 
