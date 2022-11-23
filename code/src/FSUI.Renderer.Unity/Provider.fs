@@ -125,21 +125,6 @@ type UnityProvider() =
             update = fun d' d e -> e.text <- d; e
         }
 
-    let noKeyButton =
-        let diff = fun a b -> not (LanguagePrimitives.PhysicalEquality a b)
-
-        screenBase diff {
-            create = fun (child: ScreenElement, action) ->
-                ScreenNode.addChild
-                    (Button (System.Action action) ) // directly stick the fn on without converting to delegate or we can't remove
-                    child
-            update = fun (_, action') (child, action) e ->
-                e.remove_clicked action'
-                e.add_clicked action
-
-                ScreenNode.addChild e child
-        }
-
     interface IProvider with
         member _.ProviderState = swappers
 
@@ -190,10 +175,6 @@ type UnityProvider() =
 
                     ScreenNode.addChild e child
             }
-
-    // TODO remove
-    interface IButton<ScreenProp, ScreenElement * (unit -> unit), ScreenElement> with
-        member _.Button = noKeyButton
     
     // NOTE These are just examples of multiple specializations
     interface IPoly<ScreenProp, obj, VisualElement> with
