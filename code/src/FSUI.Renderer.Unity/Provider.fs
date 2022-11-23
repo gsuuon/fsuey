@@ -100,8 +100,9 @@ type UnityProvider() =
         changes.removed |> ScreenElement.Props.unapplyProps el
         el
 
-    let screenBase diffData (el: ScreenElementRecord<'data, 'visual>) =
+    let screenBase wrap diffData (el: ScreenElementRecord<'data, 'visual>) =
         createBase
+            wrap
             diffData
             (fun x -> x :> VisualElement)
             (swappers.Create Graph.remove) 
@@ -114,7 +115,7 @@ type UnityProvider() =
               change = changeScreenProps
             }
 
-    let screen x = screenBase (<>) x
+    let screen x = screenBase id (<>) x
 
     let world (x: IElementRenderer<'props, 'data, WorldElement>) =
         create id (swappers.Create Graph.remove) x
@@ -161,20 +162,23 @@ type UnityProvider() =
             }
     
     // TODO can I hide the Keyed<'Key, unit -> unit> so I can use any IEquitable as 'Key?
-    interface IButton<ScreenProp, ScreenElement * Keyed<string, System.Action>, ScreenElement> with
+    interface IButton<ScreenProp, ScreenElement * Keyed<string, unit -> unit>, ScreenElement> with
         member val Button = 
-            screen {
-                create = fun (child, Keyed (_, action) ) ->
-                    ScreenNode.addChild
-                        (Button action ) // directly stick the fn on without converting to delegate or we can't remove
-                        child
+            screenBase
+                (fun (el, Keyed (key, act) ) -> (el, Keyed (key, System.Action act)))
+                (<>)
+                {
+                    create = fun (child, Keyed (_, action) ) ->
+                        ScreenNode.addChild
+                            (Button action ) // directly stick the fn on without converting to delegate or we can't remove
+                            child
 
-                update = fun (_, Keyed (_, action') ) (child, Keyed (_, action) ) e ->
-                    e.remove_clicked action'
-                    e.add_clicked action
+                    update = fun (_, Keyed (_, action') ) (child, Keyed (_, action) ) e ->
+                        e.remove_clicked action'
+                        e.add_clicked action
 
-                    ScreenNode.addChild e child
-            }
+                        ScreenNode.addChild e child
+                }
     
     // NOTE These are just examples of multiple specializations
     interface IPoly<ScreenProp, obj, VisualElement> with

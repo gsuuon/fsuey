@@ -33,18 +33,21 @@ module private Util =
             eprintfn "Fresh cache already contained an element at %s" (string pos)
         visual
 
-let createBase<'prop, 'data, 'visual, 'node, 'element
+let createBase<'prop, 'data, 'dataRaw, 'visual, 'node, 'element
                 when 'element :> IElementRenderer<'prop, 'data, 'visual>
                  and 'prop : equality
                  >
+    (wrapData: 'dataRaw -> 'data)
     (diffData: 'data -> 'data -> bool)
     (asNode: 'visual -> 'node)
     (cache: Swapper<Position, 'prop collection, 'data, 'visual>)
     (element: 'element)
-        : Applies<'prop, 'data, 'node>
+        : Applies<'prop, 'dataRaw, 'node>
     =
-    fun (props: 'prop collection) (data: 'data) (pos: Position) ->
+    fun (props: 'prop collection) (dataRaw: 'dataRaw) (pos: Position) ->
         let (exists, last) = cache.Stale.Remove pos // match .. with syntax doesn't get the correct overload
+
+        let data = wrapData dataRaw
 
         match exists, last with
         | false, _ ->
@@ -72,4 +75,4 @@ let createBase<'prop, 'data, 'visual, 'node, 'element
                     pos
              |> asNode
 
-let inline create a = createBase (<>) a
+let inline create a = createBase id (<>) a
