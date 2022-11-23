@@ -49,11 +49,27 @@ let createBase<'prop, 'data, 'visual, 'node, 'element
         match exists, last with
         | false, _ ->
             element.Create props data
+             |> save cache props data pos
+             |> asNode
+
         | true, (props', data', visual') ->
-            visual'
-             |> gate (diffData data' data) (element.Update data' data)
-             |> gateOpt (difference props' props) element.Change
-        |>  save cache props data pos
-        |>  asNode
+            let mutable saveData = false
+            let mutable saveProps = false
+
+            visual' // FIXME only save new props, data if they've changed
+                    // otherwise event handlers that are wrapped will be re-wrapped and won't be removed
+                    // next render
+                    // In general, it means that even with no changes apparent to diffData,
+                    // we may get different items the next render
+             |> gate (diffData data' data) (fun el ->
+                    saveData <- true
+                    element.Update data' data el)
+             |> gateOpt (difference props' props) (fun el ->
+                    saveProps <- true
+                    element.Change el
+                )
+             |> fun el ->
+                    save cache (if saveProps then props else props') (if saveData then data else data') pos el
+             |> asNode
 
 let inline create a = createBase (<>) a
