@@ -15,7 +15,6 @@ open FSUI.Make.LayoutStoreView
 
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
-open type Elements<ScreenProp>
 
 [<AutoOpen>]
 module GameModel =
@@ -61,6 +60,12 @@ module LayoutModel =
         | Items
         | Item of ItemKey
 
+type ButtonView =
+    static member inline button (x: string) =
+        fun action -> button [] ( text [] x, Keyed (x, Action action) )
+
+open type Elements<ScreenProp>
+open type ButtonView
 
 let showDetail =
     function
@@ -83,10 +88,9 @@ let showMain (v: View<_,_,_>) =
         let showItems =
             v.State.items
              |> Seq.map ( fun ( KeyValue(itemKey, item) ) ->
-                    button ( item.name, string itemKey ) <| Action(fun _ ->
-                        printfn $"Show {itemKey}"
+                    button item.name <| fun _ ->
+                        printfn $"> show {itemKey}"
                         Item itemKey |> v.Layout
-                    )
                 )
              |> Seq.toList
 
@@ -102,20 +106,19 @@ let showMain (v: View<_,_,_>) =
                 text item.name
                 text $"hp: {item.hp}"
                 showDetail item.detail
-                button "repair" <| Action(fun _ ->
-                        printfn $"repair {itemKey}"
+                button "repair" <| fun _ ->
+                        printfn $"> repair {itemKey}"
                         IncreaseHP itemKey |> v.Dispatch
-                    )
-                button "back" <| Action(fun _ ->
-                    printfn "back"
-                    v.Layout Items)
+                button "back" <| fun _ ->
+                    printfn "> back"
+                    v.Layout Items
             ]
         | None ->
             div [
                 text "No item"
-                button "back" <| Action(fun _ ->
-                    printfn "back None"
-                    v.Layout Items)
+                button "back" <| fun _ ->
+                    printfn "> back None"
+                    v.Layout Items
             ]
 
 let initialModel : World =
@@ -165,6 +168,7 @@ let updateStore update =
             else
                 NoUpdate
 
+let noop _ = ()
 let initialize update =
     async {
         while true do
@@ -186,4 +190,11 @@ let initialize update =
 let make renderer =
     let store = mkStoreByIngest initialize updateStore initialModel
 
-    make Items store showMain renderer
+    let render x =
+        printfn "<<rendering>>"
+        try
+            renderer x
+        with
+        | e -> printfn $"Error: {e.Message}"
+
+    make Items store showMain render

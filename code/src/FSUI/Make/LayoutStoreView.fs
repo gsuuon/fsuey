@@ -52,7 +52,7 @@ let mkStoreByIngest
         match updater state with
         | Update state' ->
             state <- state'
-            render()
+            render ()
         | NoUpdate ->
             ()
     

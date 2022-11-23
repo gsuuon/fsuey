@@ -5,33 +5,50 @@ open System
 open FSUI.Types
 open FSUI.Elements.Views
 open FSUI.Elements.Interfaces
-open FSUI.Renderer.Unity
 open FSUI.Make.LayoutStoreView
+open FSUI.Renderer.Unity
+open FSUI.Renderer.Unity.Views
+
+
+type ButtonView =
+    static member inline button (x: string) =
+        fun action -> button [] ( text [] x, Keyed (x, Action action) )
+
+    // static member inline button (x, key) =
+    //     fun action -> button [] ( text [] x, Keyed (string key, action ) )
+    //         // TODO key is converted to string because we can't be generic on the IButton interface
+    // static member inline button (x: Renders<_,_>, key) =
+    //     fun action -> button [] ( x, Keyed (key, action ) )
+    
+open type Elements<ScreenProp>
+open type ButtonView
 
 let show x = ()
 let noop _ = ()
 
-let but word =
-    (fun (e: #IButton<ScreenProp, ScreenElement * Keyed<string, System.Action>, ScreenElement>) pos ->
-        let child = text [] word e (Ordinal (pos, 0))
-
-        e.Button [] (child, Keyed(word, Action (fun _ -> printfn $"clicked {word}") ) ) pos
-    )
-
 let make render =
-    async {
-        render
-         <| div [] [
-                div [] [ text [] "boops" ]
-                but "a"
-                but "b"
-            ]
-        do! Async.Sleep 1000
+    let rec setA () =
+        div [
+            div [ text "A" ]
+            button "Aa" <| fun _ ->
+                printfn "clicked Aa"
+                render (setA())
 
-        render
-         <| div [] [
-                but "c"
-                but "d"
-            ]
-    } |> Async.StartImmediate
+            button "Ab" <| fun _ ->
+                printfn "clicked Ab"
+                render (setB())
+        ]
 
+    and setB () =
+        div [
+            div [ text "B" ]
+            button "Ba" <| fun _ ->
+                printfn "clicked Ba"
+                render (setA())
+
+            button "Bb" <| fun _ ->
+                printfn "clicked Bb"
+                render (setB())
+        ]
+
+    render (setA () )
