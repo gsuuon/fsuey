@@ -10,9 +10,11 @@ open FSUI.Renderer.Unity.Views
 open FSUI.Renderer.Unity.Flow
 open FSUI.Renderer.Unity.ScreenElement.Props
 open FSUI.Renderer.Unity.WorldElement.Behaviors
+open FSUI.Make.LayoutStoreView
 
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
+open type Elements<ScreenProp>
 
 [<AutoOpen>]
 module Util =
@@ -68,9 +70,6 @@ module LayoutModel =
         | Items
         | Item of ItemKey
 
-open type Elements<ScreenProp>
-
-open FSUI.Make.LayoutStoreView
 
 let showDetail =
     function
@@ -93,7 +92,7 @@ let showMain (v: View<_,_,_>) =
         let showItems =
             v.State.items
              |> Seq.map ( fun ( KeyValue(itemKey, item) ) ->
-                    button ( item.name, itemKey ) <| fun _ ->
+                    button ( item.name, string itemKey ) <| fun _ ->
                         Item itemKey |> v.Layout
                 )
              |> Seq.toList
@@ -110,7 +109,7 @@ let showMain (v: View<_,_,_>) =
                 text item.name
                 text $"hp: {item.hp}"
                 showDetail item.detail
-                button "boost" <| fun _ -> IncreaseHP itemKey |> v.Dispatch
+                button "repair" <| fun _ -> IncreaseHP itemKey |> v.Dispatch
                 button "back" <| fun _ -> v.Layout Items
             ]
         | None ->
