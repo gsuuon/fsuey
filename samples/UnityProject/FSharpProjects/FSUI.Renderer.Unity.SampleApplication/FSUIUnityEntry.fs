@@ -5,7 +5,7 @@ open UnityEngine.UIElements
 
 open FSUI.Types
 open FSUI.Renderer.Unity
-open FSUI.Renderer.Unity.SampleApplication.App
+open FSUI.Renderer.Unity.SampleApplication
 
 type FSUIUnityEntry() =
     inherit MonoBehaviour()
@@ -17,9 +17,11 @@ type FSUIUnityEntry() =
         this.document.panelSettings <- Resources.Load<PanelSettings> "FSUIPanelSettings"
 
     member this.Start () =
-        printToUnity()
+        Util.printToUnity()
 
-        let mainComponent = 
-            Renderer.mount<UnityProvider> this.document |> make
+        // let mainComponent = 
+        //     Renderer.mount<UnityProvider> this.document |> make
 
-        mainComponent.Render()
+        // mainComponent.Render()
+
+        Renderer.mount<UnityProvider> this.document |> ButtonFix.make
