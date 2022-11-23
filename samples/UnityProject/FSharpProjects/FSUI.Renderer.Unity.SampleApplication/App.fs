@@ -14,7 +14,7 @@ open FSUI.Renderer.Unity.WorldElement.Behaviors
 open FSUI.Make.LayoutStoreView
 
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
-open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
+open type Elements<ScreenProp>
 
 [<AutoOpen>]
 module GameModel =
@@ -59,8 +59,6 @@ module LayoutModel =
     type Main =
         | Items
         | Item of ItemKey
-
-open type Elements<ScreenProp>
 
 let showDetail =
     function
@@ -163,7 +161,6 @@ let updateStore update =
             else
                 NoUpdate
 
-let noop _ = ()
 let initialize update =
     async {
         while true do
