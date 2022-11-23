@@ -60,12 +60,7 @@ module LayoutModel =
         | Items
         | Item of ItemKey
 
-type ButtonView =
-    static member inline button (x: string) =
-        fun action -> button [] ( text [] x, Keyed (x, Action action) )
-
 open type Elements<ScreenProp>
-open type ButtonView
 
 let showDetail =
     function

@@ -10,18 +10,8 @@ open FSUI.Renderer.Unity
 open FSUI.Renderer.Unity.Views
 
 
-type ButtonView =
-    static member inline button (x: string) =
-        fun action -> button [] ( text [] x, Keyed (x, Action action) )
-
-    // static member inline button (x, key) =
-    //     fun action -> button [] ( text [] x, Keyed (string key, action ) )
-    //         // TODO key is converted to string because we can't be generic on the IButton interface
-    // static member inline button (x: Renders<_,_>, key) =
-    //     fun action -> button [] ( x, Keyed (key, action ) )
-    
 open type Elements<ScreenProp>
-open type ButtonView
+// open type ButtonElement
 
 let show x = ()
 let noop _ = ()
