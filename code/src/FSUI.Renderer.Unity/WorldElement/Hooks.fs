@@ -11,20 +11,35 @@ type HookKey =
     | Desc of string * Type
     | FnTyp of Type * Type
       
+type EffectKey =
+    | AlwaysRun
+    | EffectKey of string
+
 type Prop =
-    | Effect of (GameObject -> unit)
+    | Effect of EffectKey * (GameObject -> unit)
     | Attach of HookKey * (GameObject -> (unit -> unit))
 
 let private addUnique (err: string) key item (dct: Dictionary<_,_>) =
     if not <| dct.TryAdd (key, item) then
         eprintf "Duplicate key: %A -- %s" key err
 
+type CacheProps = {
+    removeAttached : Dictionary<HookKey, unit -> unit>
+    effects : HashSet<EffectKey>
+}
+
 let create (props: IReadOnlyCollection<Prop>) visual =
     let propsDetach = Dictionary<_, _>()
+    let effects = HashSet()
 
     for hook in props do
         match hook with
-        | Effect fn -> fn visual
+        | Effect (key, fn) ->
+            match key with
+            | AlwaysRun -> fn visual
+            | key ->
+                if effects.Add key then fn visual
+                else eprintf $"Duplicate effect in create, not running: {key}"
         | Attach (key, attach) ->
             propsDetach
              |> addUnique
@@ -32,16 +47,29 @@ let create (props: IReadOnlyCollection<Prop>) visual =
                     key
                     (attach visual)
 
-    propsDetach
+    {
+        removeAttached = propsDetach
+        effects = effects
+    }
     
-let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: IReadOnlyCollection<Prop>) visual =
+let update (lastProps: CacheProps) (thisProps: IReadOnlyCollection<Prop>) visual =
     let nextPropsDetach = Dictionary<_, _>()
+    let nextEffects = HashSet()
 
     for hook in thisProps do
         match hook with
-        | Effect fn -> fn visual
+        | Effect (key, fn) ->
+            match key with
+            | AlwaysRun -> fn visual
+            | key ->
+                if not (nextEffects.Add key) then
+                    eprintf $"Duplicate effect in update, not running: {key}"
+
+                if not (lastProps.effects.Contains key) then
+                    fn visual
+
         | Attach (key, attach) ->
-            let existed, lastDetach = lastPropsDetach.Remove key
+            let existed, lastDetach = lastProps.removeAttached.Remove key
 
             if existed then
                 nextPropsDetach
@@ -56,24 +84,34 @@ let update (lastPropsDetach: Dictionary<_, unit -> unit>) (thisProps: IReadOnlyC
                         key
                         (attach visual)
 
-    for (KeyValue (_, detach) ) in lastPropsDetach do
+    for (KeyValue (_, detach) ) in lastProps.removeAttached do
         detach()
 
-    nextPropsDetach
+    {
+        removeAttached = nextPropsDetach
+        effects = nextEffects
+    }
+
+
+let private attachFnAsNewComponent<'T when 'T :> Behavior<ApplyGameObject> > (fn: GameObject -> unit) =
+    fun (gObj: GameObject) ->
+        let x = gObj.AddComponent<'T>()
+        x.Value <- ApplyGameObject fn
+
+        fun () -> GameObject.Destroy x
 
 type Props =
-    static member private attachesFn<'T when 'T :> Behavior<ApplyGameObject> > (fn: GameObject -> unit) =
-        fun (gObj: GameObject) ->
-            let x = gObj.AddComponent<'T>()
-            x.Value <- ApplyGameObject fn
-
-            fun () -> GameObject.Destroy x
 
     [<RequiresExplicitTypeArguments>]
     static member on<'T when 'T :> Behavior<ApplyGameObject>> (desc, fn)
-        = Attach (HookKey.Desc (desc, typeof<'T>), Props.attachesFn<'T> fn)
+        = Attach (HookKey.Desc (desc, typeof<'T>), attachFnAsNewComponent<'T> fn)
+
     [<RequiresExplicitTypeArguments>]
     static member on<'T when 'T :> Behavior<ApplyGameObject>> (fn)
-        = Attach (HookKey.FnTyp (typeof<'T>, fn.GetType()), Props.attachesFn<'T> fn)
-    static member effect (fn)
-        = Effect fn
+        = Attach (HookKey.FnTyp (typeof<'T>, fn.GetType()), attachFnAsNewComponent<'T> fn)
+
+    static member effect (key: string, fn)
+        = Effect (EffectKey key, fn)
+
+    static member effect (fn: GameObject -> unit)
+        = Effect (AlwaysRun, fn)
