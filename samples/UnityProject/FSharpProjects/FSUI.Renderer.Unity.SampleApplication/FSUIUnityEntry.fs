@@ -25,7 +25,4 @@ type FSUIUnityEntry() =
 
             mainComponent.Render()
 
-        let renderButtonFix () =
-            Renderer.mount<UnityProvider> this.document |> ButtonFix.make
-
-        renderButtonFix()
+        renderApp()

@@ -157,7 +157,7 @@ let updateStore update =
                         | None -> None
                     )
                 }
-                 |> Update
+                 |> DoUpdate
             else
                 NoUpdate
 
@@ -168,7 +168,7 @@ let initialize update =
 
             try
                 update <| fun world ->
-                    Update
+                    DoUpdate
                         { world with
                             tick = world.tick + 1
                             items = world.items |> Map.map (fun key item ->
