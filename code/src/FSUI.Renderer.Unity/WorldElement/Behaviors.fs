@@ -19,3 +19,13 @@ type Start() =
     inherit Behavior<ApplyGameObject>()
     member this.Start () = this.Value.Invoke this.gameObject
 
+// FIXME better name
+[<AbstractClass>]
+type Response<'T>() =
+    inherit Behavior<'T>()
+
+    [<DefaultValue>]
+    val mutable GetValue : GameObject -> 'T
+    
+    member this.Start () =
+        this.Value <- this.GetValue this.gameObject
