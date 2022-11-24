@@ -3,8 +3,8 @@ module FSUI.Elements.Views
 open FSUI.Types
 open FSUI.Elements.Interfaces
 
-let gameObject props data (env: #IGameObject<_,_,_>) pos =
-    env.GameObject props data pos
+let gameObject name props data (env: #IGameObject<_,_,_>) (pos: Position) =
+    env.GameObject props data (pos.Named name)
 
 let text props data (env: #IText<'prop, 'node>) pos =
     env.Text props (string data) pos
