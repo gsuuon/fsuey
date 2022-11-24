@@ -157,6 +157,7 @@ type UnityProvider() =
             let prefab = Resources.Load<GameObject> path 
             let gObj = GameObject.Instantiate<GameObject> prefab
             gObj.name <- name
+            gObj.SetActive false
             gObj
 
         fun path name props children pos ->
@@ -174,9 +175,21 @@ type UnityProvider() =
     // TODO Can I avoid rendering an empty VisualElement to contain game objects?
     interface IJoinContain<ScreenProp, GameObject list, ScreenElement> with
         member val JoinContain =
+            let activateAll = List.iter (fun (g: GameObject) -> g.SetActive true)
+
             screen {
-                create = fun d      -> VisualGameObjectContainer d
-                update = fun d' d e -> e // TODO
+                create = fun d ->
+                    activateAll d
+
+                    VisualGameObjectContainer d
+
+                update = fun d' d e ->
+                    // TODO probably only want to activate the new ones, incase something is inactived on purpose
+                    // instead of just being removed
+                    // can use diff for this
+                    activateAll d
+
+                    e // TODO
             }
     
     // TODO can I hide the Keyed<'Key, unit -> unit> so I can use any IEquitable as 'Key?

@@ -11,6 +11,7 @@ module ScreenNode =
 module WorldNode =
     let addChild (parent: GameObject) (child: GameObject) =
         child.transform.SetParent parent.transform
+        child.SetActive true
         parent
 
 type Graph =

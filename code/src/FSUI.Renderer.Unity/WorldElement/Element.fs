@@ -4,6 +4,7 @@ open UnityEngine
 open FSUI.Renderer.Cache
 open FSUI.Renderer.Unity
 
+// TODO dedup with prefab
 let create newGameObject (swappers: Swappers) =
     let cache = swappers.Create GameObject.Destroy
 
@@ -14,7 +15,8 @@ let create newGameObject (swappers: Swappers) =
             cache.Fresh.Add (pos, (detachProps, children, visual'))
             Graph.addChildren (children, visual')
         | false, _ ->
-            let visual = newGameObject name
+            let visual : GameObject = newGameObject name
+            visual.SetActive false
             let detachProps = visual |> Hooks.create props
             cache.Fresh.Add (pos, (detachProps, children, visual))
             Graph.addChildren (children, visual)
