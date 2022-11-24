@@ -7,7 +7,7 @@ let gameObject name props children (env: #IGameObject<_,_,_>) (pos: Position) =
     let nodes : 'node list =
         children |> List.mapi (fun idx fnode -> fnode env (Ordinal (pos, idx)))
 
-    env.GameObject props nodes (pos.Named name)
+    env.GameObject name props nodes (pos.Named name)
 
 let text props data (env: #IText<'prop, 'node>) pos =
     env.Text props (string data) pos

@@ -148,10 +148,28 @@ type UnityProvider() =
         member val GameObject =
             WorldElement.Element.create GameObject swappers
 
-    member val Prefab : Applies<WorldElement.Hooks.Prop, string, WorldElement> =
-        WorldElement.Element.create
-            (Resources.Load<GameObject> >> GameObject.Instantiate<GameObject>)
-            swappers
+    member val Prefab
+        : string -> string -> WorldElement.Hooks.Prop collection -> WorldElement list -> Position -> WorldElement
+        =
+        let cache = swappers.Create GameObject.Destroy
+
+        let loadPath path name =
+            let prefab = Resources.Load<GameObject> path 
+            let gObj = GameObject.Instantiate<GameObject> prefab
+            gObj.name <- name
+            gObj
+
+        fun path name props children pos ->
+            match cache.Stale.Remove pos : bool * _ with
+            | true, (props', data', visual') ->
+                let detachProps = WorldElement.Hooks.update props' props visual'
+                cache.Fresh.Add (pos, (detachProps, children, visual'))
+                Graph.addChildren (children, visual')
+            | false, _ ->
+                let visual = loadPath path name
+                let detachProps = visual |> WorldElement.Hooks.create props
+                cache.Fresh.Add (pos, (detachProps, children, visual))
+                Graph.addChildren (children, visual)
 
     // TODO Can I avoid rendering an empty VisualElement to contain game objects?
     interface IJoinContain<ScreenProp, GameObject list, ScreenElement> with
