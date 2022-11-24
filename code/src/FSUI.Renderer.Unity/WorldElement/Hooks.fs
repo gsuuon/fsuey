@@ -93,6 +93,7 @@ let update (lastProps: CacheProps) (thisProps: IReadOnlyCollection<Prop>) visual
     }
 
 
+// NOTE when calling into these helpers, I need to pass the type param explicitly or unity won't instantiate them as generic or abstract
 let private attachFnAsNewComponent<'T when 'T :> Behavior<ApplyGameObject> > (fn: GameObject -> unit) =
     fun (gObj: GameObject) ->
         let x = gObj.AddComponent<'T>()
@@ -100,7 +101,24 @@ let private attachFnAsNewComponent<'T when 'T :> Behavior<ApplyGameObject> > (fn
 
         fun () -> GameObject.Destroy x
 
+let private attachValueAsNewComponent<'T, 'V when 'T :> Response<'V> > (getValue: GameObject -> 'V) =
+    fun (gObj: GameObject) ->
+        let x = gObj.AddComponent<'T>()
+
+        x.GetValue <- getValue
+
+        fun () -> GameObject.Destroy x
+    
+
 type Props =
+
+    [<RequiresExplicitTypeArguments>]
+    static member does<'T, 'V when 'T :> Response<'V>> (getValue)
+        = Attach (HookKey.FnTyp (typeof<'T>, getValue.GetType()), attachValueAsNewComponent<'T,'V> getValue)
+
+    [<RequiresExplicitTypeArguments>]
+    static member does<'T, 'V when 'T :> Response<'V>> (desc, getValue)
+        = Attach (HookKey.Desc (desc, typeof<'T>), attachValueAsNewComponent<'T,'V> getValue)
 
     [<RequiresExplicitTypeArguments>]
     static member on<'T when 'T :> Behavior<ApplyGameObject>> (desc, fn)
