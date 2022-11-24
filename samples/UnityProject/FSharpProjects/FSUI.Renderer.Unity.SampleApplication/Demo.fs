@@ -14,6 +14,7 @@ open FSUI.Renderer.Unity.WorldElement.Behaviors
 open type FSUI.Renderer.Unity.WorldElement.Hooks.Props
 open type FSUI.Renderer.Unity.SampleApplication.AppViews // just for poly
 
+// TODO Just add a flow example to App with yield (Wait..)
 let main (render: Renders<UnityProvider, VisualElement>) =
     flow {
         render
