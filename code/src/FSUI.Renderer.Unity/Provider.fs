@@ -144,7 +144,7 @@ type UnityProvider() =
                     // Assumes adding same element is no-op, swapper takes care of removing stale children
             }
 
-    interface IGameObject<WorldElement.Hooks.Prop, string, WorldElement> with
+    interface IGameObject<WorldElement.Hooks.Prop, WorldElement list, WorldElement> with
         member val GameObject =
             WorldElement.Element.create GameObject swappers
 

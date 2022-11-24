@@ -15,7 +15,8 @@ type IButton<'prop, 'data, 'node> =
     abstract member Button: Applies<'prop, 'data, 'node>
 
 type IGameObject<'prop, 'data, 'node> =
-    abstract member GameObject : Applies<'prop, 'data, 'node>
+    abstract member GameObject : (string -> 'prop collection -> 'data -> Position -> 'node)
+
 
 /// Let a type from one type hierarchy to join/contain children of another type hierarchy
 /// e.g. a nodeElement containing GameObject
