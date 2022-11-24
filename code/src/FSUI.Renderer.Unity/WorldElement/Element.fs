@@ -5,14 +5,14 @@ open FSUI.Renderer.Cache
 
 let create newGameObject (swappers: Swappers) =
     let cache = swappers.Create GameObject.Destroy
+
     fun props name pos ->
-        let (exists, last) = cache.Stale.Remove pos
-        if exists then
-            let (props', data', visual') = last
+        match cache.Stale.Remove pos : bool * _ with
+        | true, (props', data', visual') ->
             let detachProps = Hooks.update props' props visual'
             cache.Fresh.Add (pos, (detachProps, name, visual'))
             visual'
-        else
+        | false, _ ->
             let visual = newGameObject name
             let detachProps = visual |> Hooks.create props
             cache.Fresh.Add (pos, (detachProps, name, visual))

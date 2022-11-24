@@ -45,11 +45,9 @@ let createBase<'prop, 'data, 'dataRaw, 'visual, 'node, 'element
         : Applies<'prop, 'dataRaw, 'node>
     =
     fun (props: 'prop collection) (dataRaw: 'dataRaw) (pos: Position) ->
-        let (exists, last) = cache.Stale.Remove pos // match .. with syntax doesn't get the correct overload
-
         let data = wrapData dataRaw
 
-        match exists, last with
+        match cache.Stale.Remove pos : bool * _ with
         | false, _ ->
             element.Create props data
              |> save cache props data pos
