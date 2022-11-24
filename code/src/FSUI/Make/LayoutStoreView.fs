@@ -35,10 +35,12 @@ type Component<'layout, 'state, 'msg, 'node>(
     member _.Render () = show view layout |> render
 
 type ShouldUpdate<'state> =
-    | Update of 'state
+    | DoUpdate of 'state
     | NoUpdate
 
 type Updater<'state> = 'state -> ShouldUpdate<'state>
+
+let noop _ = ()
 
 let mkStoreByIngest
     (initialize: (Updater<'state> -> unit) -> unit)
@@ -50,7 +52,7 @@ let mkStoreByIngest
 
     let set updater =
         match updater state with
-        | Update state' ->
+        | DoUpdate state' ->
             state <- state'
             render ()
         | NoUpdate ->
