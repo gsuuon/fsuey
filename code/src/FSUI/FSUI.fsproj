@@ -19,6 +19,7 @@
     <Compile Include="Difference/Difference.fs" />
     <Compile Include="Flow/Flow.fs" />
     <Compile Include="Renderer/Cache.fs" />
+    <Compile Include="Renderer/Util.fs" />
     <Compile Include="Renderer/Element.fs" />
     <Compile Include="Make/Mvu.fs" />
     <Compile Include="Make/LayoutStoreView.fs" />
