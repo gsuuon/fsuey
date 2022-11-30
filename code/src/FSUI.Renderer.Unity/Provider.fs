@@ -50,8 +50,7 @@ module Renderer =
 
         member this.Invoke x = this.fn x
 
-    let mount<'T when 'T : (new : unit -> 'T) and 'T :> IProvider > (document: UIDocument) =
-        let env = new 'T()
+    let mount (document: UIDocument) (env: #IProvider) =
         let addOnce = Once (fun el -> document.rootVisualElement.Add el)
 
         fun view ->
@@ -91,9 +90,8 @@ type ScreenElementRecord<'d, 'v> = {
 }
 
 [<AutoSerializable(false)>] // Unity will try to serialize this and hit depth limits
-type UnityProvider() =
+type UnityProvider(swappers: Swappers) =
     let ulog x = Debug.Log x
-    let swappers = Swappers()
 
     let changeScreenProps (changes: Changes<ScreenProp>) (el: #VisualElement) =
         changes.created |> ScreenElement.Props.applyProps el
