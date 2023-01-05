@@ -6,9 +6,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <UnityHubRootDir Condition="'$(UNITYHUBROOTDIR)' == ''">/home/gsuuon/Unity/Hub/</UnityHubRootDir>
+    <UnityHubRoot Condition="'$(UnityHubRoot)' == ''">/home/gsuuon/Unity/Hub/</UnityHubRoot>
     <UnityEditorVersion Condition="'$(UNITYEDITORVERSION)' == ''">2021.3.13f1</UnityEditorVersion>
-    <UnityEditorEngineDllsDir>$(UnityHubRootDir)Editor/$(UnityEditorVersion)/Editor/Data/Managed/UnityEngine</UnityEditorEngineDllsDir>
+    <UnityReferencePath Condition="'$(UnityReferencePath)' == ''">$(UnityHubRoot)Editor/$(UnityEditorVersion)/Editor/Data/Managed/UnityEngine</UnityReferencePath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" >
@@ -36,20 +36,20 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.CoreModule.dll">
+    <Reference Include="$(UnityReferencePath)/UnityEngine.CoreModule.dll">
       <Private>false</Private>
     </Reference>
-    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.UIElementsModule.dll">
+    <Reference Include="$(UnityReferencePath)/UnityEngine.UIElementsModule.dll">
       <Private>false</Private>
     </Reference>
     <!-- These are to be able to inherit VisualElement in VisualGameObjectContainer -->
-    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.TextRenderingModule.dll">
+    <Reference Include="$(UnityReferencePath)/UnityEngine.TextRenderingModule.dll">
       <Private>false</Private>
     </Reference>
-    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.UIElementsNativeModule.dll">
+    <Reference Include="$(UnityReferencePath)/UnityEngine.UIElementsNativeModule.dll">
       <Private>false</Private>
     </Reference>
-    <Reference Include="$(UnityEditorEngineDllsDir)/UnityEngine.IMGUIModule.dll">
+    <Reference Include="$(UnityReferencePath)/UnityEngine.IMGUIModule.dll">
       <Private>false</Private>
     </Reference>
   </ItemGroup>
