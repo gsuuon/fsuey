@@ -31,11 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Update="FSharp.Core" ExcludeAssets="all" />
-    <Reference Include="./FSharp.Core.dll" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="$(UnityReferencePath)/UnityEngine.CoreModule.dll">
       <Private>false</Private>
     </Reference>
